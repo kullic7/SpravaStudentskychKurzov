@@ -29,10 +29,10 @@ class Configuration
     /**
      * Database connection settings.
      */
-    public const DB_HOST = 'db';  // Hostname for the database service (defined in docker/docker-compose.yml)
-    public const DB_NAME = 'vaiicko_db'; // Database name (defined in docker/.env)
-    public const DB_USER = 'vaiicko_user'; // Username for database access (defined in docker/.env)
-    public const DB_PASS = 'dtb456'; // Password for database access (defined in docker/.env)
+    public const DB_HOST = 'postgres';  // Hostname for the database service (defined in docker/docker-compose.yml)
+    public const DB_NAME = 'sprava_studentskych_kurzov'; // Database name (defined in docker/.env)
+    public const DB_USER = 'r_frat'; // Username for database access (defined in docker/.env)
+    public const DB_PASS = 'rfratpassword'; // Password for database access (defined in docker/.env)
 
     /**
      * URL for the login page. Users will be redirected here if authentication is required for an action.
