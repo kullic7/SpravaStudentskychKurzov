@@ -19,7 +19,7 @@ class Configuration
     /**
      * Application name.
      */
-    public const APP_NAME = 'Vaííčko MVC FW';
+    public const APP_NAME = 'Správa študentských kurzov';
 
     /**
      * Version of the framework.
@@ -43,7 +43,7 @@ class Configuration
      * Prefix for the default view files located in the App/Views directory. The view file format is
      * <ROOT_LAYOUT>.layout.view.php.
      */
-    public const ROOT_LAYOUT = 'root';
+    public const AUTH_LAYOUT = 'auth';
 
     /**
      * Flag to determine whether to display all SQL queries after the application output for debugging purposes.

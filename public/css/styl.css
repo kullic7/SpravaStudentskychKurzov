@@ -1,7 +1,104 @@
-.navbar {
-    border-bottom: 1px solid grey;
+/* =========================================
+   1. Global background gradient
+========================================= */
+.auth-bg {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+    overflow-x: hidden;
 }
 
-.navbar-brand img {
-    width: 50px;
+/* =========================================
+   2. Logo – always top left
+========================================= */
+.login-logo-wrapper {
+    position: fixed;
+    top: 25px;
+    left: 25px;
+    z-index: 50;
+}
+
+.login-logo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 10px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* =========================================
+   3. Center wrapper
+========================================= */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 80px;  /* bezpečný odstup od loga */
+}
+
+/* =========================================
+   4. Glassmorphism card
+========================================= */
+.auth-card {
+    width: 420px;
+    padding: 35px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Inputs */
+.auth-input {
+    transition: all 0.25s ease-in-out;
+    border-radius: 10px;
+}
+
+.auth-input:focus {
+    border-color: #6c63ff;
+    box-shadow: 0 0 8px rgba(108, 99, 255, 0.4);
+}
+
+/* Button */
+.auth-btn {
+    background: linear-gradient(to right, #4e9af1, #4169e1);
+    border: none;
+    padding: 10px;
+    font-weight: 500;
+    border-radius: 10px;
+}
+
+.auth-btn:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* =========================================
+   Mobile responsiveness
+========================================= */
+
+@media (max-width: 576px) {
+
+    .login-logo {
+        width: 90px;
+        height: 90px;
+    }
+
+    .auth-wrapper {
+        padding-top: 140px; /* viac miesta, aby karta nešla pod logo */
+        align-items: flex-start;
+    }
+
+    .auth-card {
+        width: 90%;
+        padding: 25px;
+    }
 }

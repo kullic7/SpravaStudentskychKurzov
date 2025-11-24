@@ -1,40 +1,30 @@
-<?php
 
-/** @var string|null $message */
-/** @var \Framework\Support\LinkGenerator $link */
-/** @var \Framework\Support\View $view */
+<div class="auth-content">
 
-$view->setLayout('auth');
-?>
+    <h2 class="text-center mb-4 fw-semibold">Prihlásenie</h2>
 
-<div class="container">
-    <div class="row">
-        <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-            <div class="card card-signin my-5">
-                <div class="card-body">
-                    <h5 class="card-title text-center">Username</h5>
-                    <div class="text-center text-danger mb-3">
-                        <?= @$message ?>
-                    </div>
-                    <form class="form-signin" method="post" action="<?= $link->url("login") ?>">
-                        <div class="form-label-group mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input name="username" type="text" id="username" class="form-control" placeholder="Username"
-                                   required autofocus>
-                        </div>
+    <?php if (!empty($error)): ?>
+        <div class="alert alert-danger py-2"><?= $error ?></div>
+    <?php endif; ?>
 
-                        <div class="form-label-group mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input name="password" type="password" id="password" class="form-control"
-                                   placeholder="Password" required>
-                        </div>
-                        <div class="text-center">
-                            <button class="btn btn-primary" type="submit" name="submit">Log in
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
+
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="text" name="email" id="email" class="form-control auth-input" required>
     </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">Heslo</label>
+        <input type="password" name="password" id="password" class="form-control auth-input" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100 auth-btn mt-3">
+        Prihlásiť sa
+    </button>
+
+
 </div>
+
+
+

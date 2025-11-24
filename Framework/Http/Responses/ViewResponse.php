@@ -71,7 +71,7 @@ class ViewResponse extends Response
         ];
 
         // Selected layout is controlled by the helper via reference; default to root layout
-        $selectedLayout = Configuration::ROOT_LAYOUT;
+        $selectedLayout = Configuration::AUTH_LAYOUT;
         $view = new ViewHelper($selectedLayout);
 
         // Render the main view; it may call $view->layout('name')
