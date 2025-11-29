@@ -5,6 +5,8 @@ namespace App\Controllers;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use App\Models\User as UserModel;
+
 
 class AuthController extends BaseController
 {
@@ -18,20 +20,31 @@ class AuthController extends BaseController
     // SPRACOVANIE FORMULÁRA
     public function login(Request $request): Response
     {
-        if ($request->isPost()) {
+        $logged = null;
+        if ($request->hasValue('submit')) {
+            $logged = $this->app->getAuthenticator()->login($request->value('email'), $request->value('password'));
+            if ($logged) {
+                //return $this->redirect($this->url("admin.index"));
+                $user = $this->app->getAuthenticator()->getUser();
+                $role = strtolower($user->getRole());
 
-            $email = $request->getValue('email');
-            $password = $request->getValue('password');
-
-            $result = $this->app->getAuthenticator()->login($email, $password);
-
-            if ($result) {
-                return $this->redirect('/');  // po login úspešný redirect
+                switch ($role) {
+                    case 'admin':
+                        return $this->redirect('?c=admin&a=index');
+                    case 'teacher':
+                        return $this->redirect('?c=teacher&a=index');
+                    case 'student':
+                        return $this->redirect('?c=student&a=index');
+                    default:
+                        return $this->redirect('?c=home&a=index');
+                }
             }
-
-            return $this->html(['error' => 'Nesprávne údaje'], "Auth/login");
         }
+        // NEÚSPEŠNÉ PRIHLÁSENIE ALEBO PRVÉ ZOBRAZENIE
+        return $this->html([
+            'error' => $logged === false ? 'Bad username or password' : null
+        ], 'login');
 
-        return $this->redirect('?c=auth');
     }
+
 }

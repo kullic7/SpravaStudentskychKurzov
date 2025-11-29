@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Security;
+namespace App\Models;
 
 use Framework\Core\IIdentity;
 

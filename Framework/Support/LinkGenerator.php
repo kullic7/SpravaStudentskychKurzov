@@ -104,8 +104,7 @@ class LinkGenerator
      * Generates a URL to a static asset under the public web root.
      *
      * Examples:
-     * - asset('css/styl.css')               // relative to app base path
-     * - asset('/css/styl.css')              // leading slash is normalized
+
      * - asset('js/app.js', true)            // absolute URL with scheme and host
      */
     public function asset(string $path, bool $absolute = false): string

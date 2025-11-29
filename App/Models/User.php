@@ -24,34 +24,21 @@ class User extends Model
 
     // Model properties (camelCase) — Framework will map snake_case DB columns to these names.
     public ?int $id = null;
-    public ?string $firstName = null;
-    public ?string $lastName = null;
+    public ?string $first_name = null;
+    public ?string $last_name = null;
     public ?string $email = null;
-    public ?string $passwordHash = null;
+    public ?string $password_hash = null;
     public ?string $role = null;
-    public ?string $createdAt = null;
+    public ?string $created_at = null;
 
     /**
-     * Convenience: set password (hashes using PHP's password_hash)
-     * @param string $password
-     * @return void
+     * Get the user's role.
+     *
+     * @return string|null Role name (e.g. 'admin', 'teacher', 'student') or null if not set.
      */
-    public function setPassword(string $password): void
+    public function getRole(): ?string
     {
-        $this->passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        return $this->role;
     }
 
-    /**
-     * Convenience: verify password against the stored hash
-     * @param string $password
-     * @return bool
-     */
-    public function verifyPassword(string $password): bool
-    {
-        if ($this->passwordHash === null) {
-            return false;
-        }
-        return password_verify($password, $this->passwordHash);
-    }
 }
-

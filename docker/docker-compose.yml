@@ -2,7 +2,9 @@ version: "3"
 services:
 
   web:
-    image: ghcr.io/thevajko/vaii-web-server:main
+    build:
+      context: ./web
+      dockerfile: Dockerfile
     environment:
       - APACHE_DOCUMENT_ROOT=/var/www/html/public
     volumes:
