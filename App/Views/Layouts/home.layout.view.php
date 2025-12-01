@@ -1,6 +1,5 @@
 <?php
 /** @var string $contentHTML */
-/** @var \Framework\Core\IAuthenticator $auth */
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \App\Models\LoggedUser|null $user */
 ?>
@@ -31,6 +30,8 @@
                      class="login-logo"
                      >
             </a>
+
+
 
             <!-- HAMBURGER -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">

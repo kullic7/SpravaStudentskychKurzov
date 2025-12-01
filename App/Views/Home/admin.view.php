@@ -1,9 +1,5 @@
 <?php
-/** @var \Framework\Support\View $view */
 /** @var \Framework\Auth\AppUser $user */
-/** @var int $courseCount */
-/** @var int $studentCount */
-/** @var int $teacherCount */
 /** @var \Framework\Support\LinkGenerator $link */
 $view->setLayout('home');
 ?>

@@ -23,7 +23,10 @@ $title = 'Môj profil';
             </div>
         <?php endif; ?>
 
-        <form method="post" action="<?= htmlspecialchars($link->url('auth.updateProfile')) ?>">
+        <!-- AJAX alerts will be injected here -->
+        <div id="profileAlert"></div>
+
+        <form id="profileForm" method="post" action="<?= htmlspecialchars($link->url('auth.updateProfile')) ?>">
             <div class="mb-3">
                 <label class="form-label" for="firstName">Meno</label>
                 <input id="firstName" type="text" name="firstName" class="form-control" value="<?= htmlspecialchars($userModel->firstName ?? '') ?>" required>
@@ -59,8 +62,11 @@ $title = 'Môj profil';
 
             <div class="d-flex justify-content-between align-items-center">
                 <a href="<?= htmlspecialchars($link->url('home.index')) ?>" class="btn btn-outline-secondary">Späť</a>
-                <button type="submit" class="btn btn-primary">Uložiť zmeny</button>
+                <button id="profileSubmit" type="submit" class="btn btn-primary">Uložiť zmeny</button>
             </div>
         </form>
     </div>
 </div>
+
+<!-- Load shared frontend scripts -->
+<script src="<?= $link->asset('js/scripts.js') ?>"></script>

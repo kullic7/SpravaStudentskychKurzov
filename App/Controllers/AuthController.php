@@ -5,7 +5,9 @@ namespace App\Controllers;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
+use Framework\Http\Responses\JsonResponse;
 use App\Models\User as UserModel;
+use App\Models\LoggedUser;
 
 
 class AuthController extends BaseController
@@ -75,12 +77,19 @@ class AuthController extends BaseController
         // Ensure user is logged in
         $appUser = $this->app->getAuthenticator()->getUser();
         if (!$appUser->isLoggedIn()) {
+            // For AJAX request return JSON error
+            if ($request->isAjax()) {
+                return new JsonResponse(['success' => false, 'errors' => ['Not authenticated']]);
+            }
             return $this->redirect($this->url('auth.index'));
         }
 
         $userId = $appUser->getId();
         $user = UserModel::findById($userId);
         if ($user === null) {
+            if ($request->isAjax()) {
+                return new JsonResponse(['success' => false, 'errors' => ['User not found']]);
+            }
             return $this->redirect($this->url('auth.index'));
         }
 
@@ -97,10 +106,45 @@ class AuthController extends BaseController
         $errors = $user->updateProfile($data);
 
         if (!empty($errors)) {
+            if ($request->isAjax()) {
+                return new JsonResponse(['success' => false, 'errors' => $errors]);
+            }
             return $this->html(['userModel' => $user, 'errors' => $errors], 'profile');
         }
 
-        // After save, redirect back to profile (could add flash message)
+        // Update session identity so the logged-user info reflects changes immediately
+        try {
+            $newIdentity = new LoggedUser(
+                $user->id,
+                $user->email ?? '',
+                $user->firstName ?? '',
+                $user->lastName ?? '',
+                $user->role ?? ''
+            );
+            // Session key used by SessionAuthenticator
+            $this->app->getSession()->set('fw.session.user.identity', $newIdentity);
+
+            // Refresh the controller's user instance so templates rendered in this request see the change
+            $this->user = $this->app->getAppUser();
+        } catch (\Throwable $e) {
+            // ignore session update failures - the DB was still updated
+        }
+
+        // After save, respond according to request type
+        if ($request->isAjax()) {
+            // Optionally, return updated user data (avoid sensitive fields)
+            return new JsonResponse([
+                'success' => true,
+                'message' => 'Profil uložený',
+                'user' => [
+                    'firstName' => $user->firstName,
+                    'lastName' => $user->lastName,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                ]
+            ]);
+        }
+
         return $this->redirect($this->url('auth.profile'));
     }
 

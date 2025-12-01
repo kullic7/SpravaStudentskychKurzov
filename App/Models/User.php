@@ -37,6 +37,8 @@ class User extends Model
     public ?string $role = null;
     public ?string $createdAt = null;
 
+
+
     /**
      * Get the user's role.
      *
@@ -46,7 +48,9 @@ class User extends Model
     {
         return $this->role;
     }
-
+    public function getName(): string {
+        return $this->firstName . ' ' . $this->lastName;
+    }
     // -------------------- convenience helpers --------------------
 
     /**
