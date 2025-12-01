@@ -30,7 +30,7 @@ class DummyAuthenticator extends SessionAuthenticator
         }
 
         // Password is stored in DB as password_hash (use password_verify)
-        if (!isset($user->password_hash) || !password_verify($password, $user->password_hash)) {
+        if (!isset($user->passwordHash) || !password_verify($password, $user->passwordHash)) {
             return null;
         }
 
@@ -38,8 +38,8 @@ class DummyAuthenticator extends SessionAuthenticator
         return new LoggedUser(
             $user->id,
             $user->email ?? '',
-            $user->first_name ?? '',
-            $user->last_name ?? '',
+            $user->firstName ?? '',
+            $user->lastName ?? '',
             $user->role ?? ''
         );
     }

@@ -2,7 +2,7 @@
 /** @var string $contentHTML */
 /** @var \Framework\Core\IAuthenticator $auth */
 /** @var \Framework\Support\LinkGenerator $link */
-/** @var \App\Security\LoggedUser|null $user */
+/** @var \App\Models\LoggedUser|null $user */
 ?>
 <!DOCTYPE html>
 <html lang="sk">
@@ -29,7 +29,7 @@
                 <img src="<?= $link->asset('images/logo.png') ?>"
                      alt="Logo"
                      class="login-logo"
-                >
+                     >
             </a>
 
             <!-- HAMBURGER -->
@@ -40,15 +40,32 @@
             <!-- MENU -->
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav ms-auto" style="font-size: 1.2rem; font-weight: 700; padding: 8px 15px; ">
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= htmlspecialchars($link->url('home.index')) ?>">Domov</a>
+                    </li>
 
-                    <li class="nav-item"><a class="nav-link" href="#">Domov</a></li>
+                    <?php if ($user && $user->getRole() === 'admin'): ?>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.kurzy')) ?>">Kurzy</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.studenti')) ?>">Študenti</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.ucitelia')) ?>">Učitelia</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.zapisy')) ?>">Zápisy</a></li>
+                    <?php endif; ?>
+
+                    <?php if ($user && $user->getRole() === 'student'): ?>
                     <li class="nav-item"><a class="nav-link" href="#">Kurzy</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Známky</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Zápisy</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Profil</a></li>
+                    <?php endif; ?>
 
+                    <?php if ($user && $user->getRole() === 'teacher'): ?>
+                    <li class="nav-item"><a class="nav-link" href="#">Kurzy</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Študenti</a></li>
+                    <?php endif; ?>
                     <li class="nav-item">
-                        <a class="nav-link text-danger fw-semibold" href="#">Odhlásiť sa</a>
+                        <a class="nav-link" href="<?= htmlspecialchars($link->url('auth.profile')) ?>">Profil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger fw-semibold" href="<?= htmlspecialchars($link->url('auth.logout')) ?>">Odhlásiť sa</a>
                     </li>
                 </ul>
             </div>

@@ -18,6 +18,10 @@ class Student extends Model
 {
     // Optional explicit table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'students';
+    protected static array $columnsMap = [
+        'user_id' => 'userId',
+        'student_number'  => 'studentNumber',
+    ];
 
     public ?int $id = null;
     public ?int $userId = null;
@@ -47,5 +51,25 @@ class Student extends Model
         $items = static::getAll('student_number = ?', [$studentNumber], null, 1);
         return $items[0] ?? null;
     }
-}
 
+    // ---------------- convenience wrappers ----------------
+
+    /**
+     * Wrapper for retrieving all students.
+     * @return static[]
+     */
+    public static function getAllStudents(): array
+    {
+        return static::getAll();
+    }
+
+    /**
+     * Wrapper to get a single student by id (alias for Model::getOne)
+     * @param int $id
+     * @return static|null
+     */
+    public static function findById(int $id): ?static
+    {
+        return static::getOne($id);
+    }
+}

@@ -24,20 +24,8 @@ class AuthController extends BaseController
         if ($request->hasValue('submit')) {
             $logged = $this->app->getAuthenticator()->login($request->value('email'), $request->value('password'));
             if ($logged) {
-                //return $this->redirect($this->url("admin.index"));
-                $user = $this->app->getAuthenticator()->getUser();
-                $role = strtolower($user->getRole());
+                return $this->redirect($this->url("home.index"));
 
-                switch ($role) {
-                    case 'admin':
-                        return $this->redirect('?c=admin&a=index');
-                    case 'teacher':
-                        return $this->redirect('?c=teacher&a=index');
-                    case 'student':
-                        return $this->redirect('?c=student&a=index');
-                    default:
-                        return $this->redirect('?c=home&a=index');
-                }
             }
         }
         // NEÚSPEŠNÉ PRIHLÁSENIE ALEBO PRVÉ ZOBRAZENIE
@@ -45,6 +33,75 @@ class AuthController extends BaseController
             'error' => $logged === false ? 'Bad username or password' : null
         ], 'login');
 
+    }
+
+    // ODHLÁSENIE AKTUÁLNEHO UŽÍVATEĽA
+    public function logout(Request $request): Response
+    {
+        $auth = $this->app->getAuthenticator();
+        if ($auth !== null) {
+            $auth->logout();
+        } else {
+            // If no authenticator is configured, attempt to clear session as a fallback
+            try {
+                $this->app->getSession()->destroy();
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
+
+        // Redirect to the login page (show login form)
+        return $this->redirect($this->url('auth.index'));
+    }
+
+    // ZOBRAZI PROFILE (spoločný pre všetky role)
+    public function profile(Request $request): Response
+    {
+        // Ensure user is logged in
+        $appUser = $this->app->getAuthenticator()->getUser();
+        if (!$appUser->isLoggedIn()) {
+            return $this->redirect($this->url('auth.index'));
+        }
+
+        $userId = $appUser->getId();
+        $user = UserModel::findById($userId);
+
+        return $this->html(['userModel' => $user], 'profile');
+    }
+
+    // SPRACOVANIE UPRAVY PROFILE
+    public function updateProfile(Request $request): Response
+    {
+        // Ensure user is logged in
+        $appUser = $this->app->getAuthenticator()->getUser();
+        if (!$appUser->isLoggedIn()) {
+            return $this->redirect($this->url('auth.index'));
+        }
+
+        $userId = $appUser->getId();
+        $user = UserModel::findById($userId);
+        if ($user === null) {
+            return $this->redirect($this->url('auth.index'));
+        }
+
+        // Build data array from submitted values
+        $data = [
+            'firstName' => trim((string)$request->post('firstName')),
+            'lastName' => trim((string)$request->post('lastName')),
+            'email' => trim((string)$request->post('email')),
+            'password' => $request->post('password'),
+            'passwordConfirm' => $request->post('passwordConfirm'),
+        ];
+
+        // Delegate validation and saving to the model helper
+        $errors = $user->updateProfile($data);
+
+        if (!empty($errors)) {
+            return $this->html(['userModel' => $user, 'errors' => $errors], 'profile');
+        }
+
+        // After save, redirect back to profile (could add flash message)
+        return $this->redirect($this->url('auth.profile'));
     }
 
 }

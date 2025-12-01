@@ -38,7 +38,7 @@ VALUES
 -- ===========================
 INSERT INTO enrollments (student_id, course_id, grade, status)
 VALUES
-    (1, 1, 'A', 'completed'),
-    (1, 2, 'B', 'active'),
-    (2, 2, 'A', 'completed'),
-    (2, 3, 'C', 'active');
+    (1, 1, 'A', 'approved'),
+    (1, 2, NULL, 'approved'),
+    (2, 2, NULL, 'not approved'),
+    (2, 3, 'C', 'approved');

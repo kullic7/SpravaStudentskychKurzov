@@ -2,7 +2,7 @@
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Auth\AppUser $user */
 // Set the layout to the main root layout
-$view->setLayout('teacher');
+$view->setLayout('home');
 ?>
 
 <div class="row">

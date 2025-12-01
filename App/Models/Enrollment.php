@@ -19,6 +19,10 @@ class Enrollment extends Model
 {
     // Optional explicit table name
     protected static ?string $tableName = 'enrollments';
+    protected static array $columnsMap = [
+        'student_id' => 'studentId',
+        'course_id'  => 'courseId',
+    ];
 
     public ?int $id = null;
     public ?int $studentId = null;
@@ -81,5 +85,32 @@ class Enrollment extends Model
     {
         return static::getAll('student_id = ? AND status = ?', [$studentId, 'active']);
     }
-}
 
+    // ---------------- convenience wrappers ----------------
+
+    /**
+     * Return enrollments with pending/not-approved statuses.
+     * @param array|null $statuses optional array of status strings to treat as pending
+     * @return static[]
+     */
+    public static function getPendingEnrollments(?array $statuses = null): array
+    {
+        $statuses = $statuses ?? ['not_approved', 'not approved', 'not aproved', 'pending'];
+        $placeholders = implode(', ', array_fill(0, count($statuses), '?'));
+        return static::getAll("status IN ($placeholders)", $statuses);
+    }
+
+    /**
+     * Approve an enrollment by id (set status = 'approved'). Returns true if updated, false otherwise.
+     * @param int $id
+     * @return bool
+     */
+    public static function approveById(int $id): bool
+    {
+        $en = static::getOne($id);
+        if ($en === null) return false;
+        $en->status = 'approved';
+        $en->save();
+        return true;
+    }
+}

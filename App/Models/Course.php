@@ -19,6 +19,9 @@ class Course extends Model
 {
     // Optional explicit table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'courses';
+    protected static array $columnsMap = [
+        'teacher_id' => 'teacherId',
+    ];
 
     public ?int $id = null;
     public ?int $teacherId = null;
@@ -60,5 +63,25 @@ class Course extends Model
         $items = static::getAll('name = ?', [$name], null, 1);
         return $items[0] ?? null;
     }
-}
 
+    // ---------------- convenience wrappers ----------------
+
+    /**
+     * Wrapper for retrieving all courses.
+     * @return static[]
+     */
+    public static function getAllCourses(): array
+    {
+        return static::getAll();
+    }
+
+    /**
+     * Wrapper to get a single course by id (alias for Model::getOne)
+     * @param int $id
+     * @return static|null
+     */
+    public static function findById(int $id): ?static
+    {
+        return static::getOne($id);
+    }
+}

@@ -50,7 +50,8 @@ abstract class Model implements \JsonSerializable
             $columns = static::getDBColumnNamesList();
 
             $sql = "SELECT $columns FROM " . static::getTableName();
-
+            //echo "<pre>$sql</pre>";
+            //die();
             if ($whereClause) $sql .= " WHERE $whereClause";
             if ($orderBy) $sql .= " ORDER BY $orderBy";
             if ($limit !== null) $sql .= " LIMIT $limit";
@@ -60,7 +61,8 @@ abstract class Model implements \JsonSerializable
             $stmt->execute($whereParams);
 
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+            //var_dump($rows[0]);
+            //die();
             $models = [];
 
             foreach ($rows as $row) {
@@ -223,6 +225,7 @@ abstract class Model implements \JsonSerializable
     /** ALIASING **/
     private static function getDBColumnNamesList(): string
     {
+        //die("COLUMNS: " . static::getTableName());
         $parts = [];
 
         foreach (static::getDbColumns() as $column) {

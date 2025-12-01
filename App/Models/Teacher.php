@@ -17,6 +17,9 @@ class Teacher extends Model
 {
     // Optional explicit table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'teachers';
+    protected static array $columnsMap = [
+        'user_id' => 'userId',
+    ];
 
     public ?int $id = null;
     public ?int $userId = null;
@@ -56,5 +59,25 @@ class Teacher extends Model
     {
         return static::getAll('department = ?', [$department], null, $limit);
     }
-}
 
+    // ---------------- convenience wrappers ----------------
+
+    /**
+     * Wrapper for retrieving all teachers.
+     * @return static[]
+     */
+    public static function getAllTeachers(): array
+    {
+        return static::getAll();
+    }
+
+    /**
+     * Wrapper to get a single teacher by id (alias for Model::getOne)
+     * @param int $id
+     * @return static|null
+     */
+    public static function findById(int $id): ?static
+    {
+        return static::getOne($id);
+    }
+}

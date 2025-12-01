@@ -2,7 +2,7 @@
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Auth\AppUser $user */
 // Set the layout to the main root layout
-$view->setLayout('admin');
+$view->setLayout('home');
 ?>
 
 <div class="row">
@@ -13,10 +13,10 @@ $view->setLayout('admin');
 </div>
 
 <div class="row mt-4">
-        <div class="col-12">
-            <h3>Admin dashboard</h3>
-            <p>Sem patrí prehľad používateľov, správa kurzov a systémové nastavenia.</p>
-            <a href="?c=users" class="btn btn-primary">Spravovať používateľov</a>
-        </div>
 
+    <div class="col-12">
+        <h3>Študentský dashboard</h3>
+        <p>Prehľad vašich zápisov a dosiahnutých známok.</p>
+        <a href="?c=enrollments" class="btn btn-primary">Moje zápisy</a>
+    </div>
 </div>
