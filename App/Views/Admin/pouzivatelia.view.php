@@ -54,7 +54,7 @@ $title = 'Používatelia';
                             <td data-col="studentNumber"><span class="value"><?= $student ? htmlspecialchars($student->studentNumber ?? '-') : '-' ?></span></td>
                             <td data-col="department"><span class="value"><?= $teacher ? htmlspecialchars($teacher->department ?? '-') : '-' ?></span></td>
                             <td class="actions">
-                                <button class="btn btn-sm btn-outline-primary edit-row">Upraviť</button>
+                                <a href="<?= htmlspecialchars($link->url('admin.editUser', ['id' => $user->id])) ?>" class="btn btn-sm btn-primary">Upraviť</a>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -64,5 +64,3 @@ $title = 'Používatelia';
         <?php endif; ?>
     </div>
 </div>
-
-
