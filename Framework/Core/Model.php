@@ -179,8 +179,8 @@ abstract class Model implements \JsonSerializable
     {
         if ($this->_dbId === null) return;
 
-        $sql = "DELETE FROM " . static::getTableName()
-            . " WHERE " . static::getPkColumnName() . " = ?";
+        $sql = "DELETE FROM " . static::getTableName() .
+            " WHERE " . static::getPkColumnName() . " = ?";
 
         $stmt = Connection::getInstance()->prepare($sql);
         $stmt->execute([$this->_dbId]);

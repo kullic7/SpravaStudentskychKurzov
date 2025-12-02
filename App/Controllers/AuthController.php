@@ -8,6 +8,8 @@ use Framework\Http\Responses\Response;
 use Framework\Http\Responses\JsonResponse;
 use App\Models\User as UserModel;
 use App\Models\LoggedUser;
+use App\Models\Student;
+use App\Models\Teacher;
 
 
 class AuthController extends BaseController
@@ -65,8 +67,27 @@ class AuthController extends BaseController
             return $this->redirect($this->url('auth.index'));
         }
 
-        $userId = $appUser->getId();
+        // allow optional id param to view another user's profile (admins only)
+        $requestedId = $request->get('id');
+        $viewerRole = null;
+        try { $viewerRole = $appUser->getRole(); } catch (\Throwable $_) { $viewerRole = null; }
+
+        if ($requestedId !== null) {
+            // if admin, allow viewing others
+            if ($viewerRole === 'admin') {
+                $userId = (int)$requestedId;
+            } else {
+                // non-admins may only view their own profile
+                $userId = $appUser->getId();
+            }
+        } else {
+            $userId = $appUser->getId();
+        }
+
         $user = UserModel::findById($userId);
+        if ($user === null) {
+            return $this->redirect($this->url('home.index'));
+        }
 
         return $this->html(['userModel' => $user], 'profile');
     }

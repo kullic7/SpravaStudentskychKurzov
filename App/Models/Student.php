@@ -74,5 +74,18 @@ class Student extends Model
         return static::getOne($id);
     }
 
+    /**
+     * Find a student record by the associated user id.
+     * @param int $userId
+     * @return static|null
+     */
+    public static function findByUserId(int $userId): ?static
+    {
+        $items = static::getAll('user_id = ?', [$userId], null, 1);
+        return $items[0] ?? null;
+    }
+
+
 
 }
+

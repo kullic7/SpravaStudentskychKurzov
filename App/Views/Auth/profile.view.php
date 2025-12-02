@@ -43,10 +43,10 @@ $title = 'Môj profil';
             </div>
 
             <?php if (isset($userModel->role)): ?>
-            <div class="mb-3">
-                <label class="form-label" for="roleField">Rola</label>
-                <input id="roleField" type="text" class="form-control" value="<?= htmlspecialchars($userModel->role) ?>" disabled>
-            </div>
+                <div class="mb-3">
+                    <label class="form-label" for="roleField">Rola</label>
+                    <input id="roleField" type="text" class="form-control" value="<?= htmlspecialchars($userModel->role) ?>" disabled>
+                </div>
             <?php endif; ?>
 
             <hr>

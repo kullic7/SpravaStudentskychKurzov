@@ -19,13 +19,15 @@ $title = 'Používatelia';
             <p>Žiadni používatelia neboli nájdení.</p>
         <?php else: ?>
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped" id="usersTable">
                     <thead>
                         <tr>
                             <th>#</th>
                             <th>Meno</th>
+                            <th>Priezvisko</th>
                             <th>Email</th>
                             <th>Rola</th>
+                            <th>Ročník</th>
                             <th>Štud. číslo</th>
                             <th>Oddelenie</th>
                             <th>Akcie</th>
@@ -33,25 +35,26 @@ $title = 'Používatelia';
                     </thead>
                     <tbody>
                         <?php foreach ($users as $user):
-                            $name = htmlspecialchars(($user->firstName ?? '') . ' ' . ($user->lastName ?? ''));
+                            $firstName = htmlspecialchars($user->firstName ?? '-');
+                            $lastName = htmlspecialchars($user->lastName ?? '-');
                             $email = htmlspecialchars($user->email ?? '-');
                             $role = htmlspecialchars($user->role ?? '-');
 
-                            // try to load student/teacher rows (if exist)
-                            $studentRows = Student::getAll('user_id = ?', [$user->id], null, 1);
-                            $student = $studentRows[0] ?? null;
-
+                            // load student/teacher rows (if exist)
+                            $student = Student::findByUserId($user->id);
                             $teacher = Teacher::findByUserId($user->id);
                         ?>
-                        <tr>
+                        <tr data-user-id="<?= htmlspecialchars($user->id) ?>" data-role="<?= htmlspecialchars($user->role ?? '') ?>">
                             <td><?= htmlspecialchars($user->id) ?></td>
-                            <td><?= $name ?></td>
-                            <td><?= $email ?></td>
-                            <td><?= $role ?></td>
-                            <td><?= $student ? htmlspecialchars($student->studentNumber) : '-' ?></td>
-                            <td><?= $teacher ? htmlspecialchars($teacher->department) : '-' ?></td>
-                            <td>
-                                <a href="<?= htmlspecialchars($link->url('admin.editUser', ['id' => $user->id])) ?>" class="btn btn-sm btn-primary">Upraviť</a>
+                            <td data-col="firstName"><span class="value"><?= $firstName ?></span></td>
+                            <td data-col="lastName"><span class="value"><?= $lastName ?></span></td>
+                            <td data-col="email"><span class="value"><?= $email ?></span></td>
+                            <td data-col="role"><span class="value"><?= $role ?></span></td>
+                            <td data-col="year"><span class="value"><?= $student ? htmlspecialchars($student->year ?? '-') : '-' ?></span></td>
+                            <td data-col="studentNumber"><span class="value"><?= $student ? htmlspecialchars($student->studentNumber ?? '-') : '-' ?></span></td>
+                            <td data-col="department"><span class="value"><?= $teacher ? htmlspecialchars($teacher->department ?? '-') : '-' ?></span></td>
+                            <td class="actions">
+                                <button class="btn btn-sm btn-outline-primary edit-row">Upraviť</button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -61,3 +64,5 @@ $title = 'Používatelia';
         <?php endif; ?>
     </div>
 </div>
+
+
