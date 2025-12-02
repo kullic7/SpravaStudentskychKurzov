@@ -9,6 +9,7 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\User;
 
 
 class AdminController extends BaseController
@@ -19,13 +20,16 @@ class AdminController extends BaseController
         return $this->html();
     }
 
-    public function studenti(Request $request): Response
+    // Unified users listing (students + teachers + others)
+    public function pouzivatelia(Request $request): Response
     {
-        // Load all students and pass them to the view
-        $students = Student::getAllStudents();
+        // Load all users
+        $users = User::getAllUsers();
 
-        return $this->html(['students' => $students]);
+        return $this->html(['users' => $users]);
     }
+
+
 
     public function kurzy(Request $request): Response
     {
@@ -57,11 +61,6 @@ class AdminController extends BaseController
         return $this->redirect($this->url('admin.zapisy'));
     }
 
-    public function ucitelia(Request $request): Response
-    {
-        // Load all teachers and pass them to the view
-        $teachers = Teacher::getAllTeachers();
 
-        return $this->html(['teachers' => $teachers]);
-    }
+
 }

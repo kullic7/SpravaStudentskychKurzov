@@ -48,6 +48,11 @@ class User extends Model
     {
         return $this->role;
     }
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
     public function getName(): string {
         return $this->firstName . ' ' . $this->lastName;
     }
@@ -61,6 +66,15 @@ class User extends Model
     public static function findById(int $id): ?static
     {
         return static::getOne($id);
+    }
+
+    /**
+     * Convenience: return all users
+     * @return static[]
+     */
+    public static function getAllUsers(): array
+    {
+        return static::getAll();
     }
 
     /**
@@ -123,5 +137,7 @@ class User extends Model
 
         return [];
     }
+
+
 
 }

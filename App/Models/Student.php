@@ -52,6 +52,7 @@ class Student extends Model
         return $items[0] ?? null;
     }
 
+    /**
     // ---------------- convenience wrappers ----------------
 
     /**
@@ -72,4 +73,6 @@ class Student extends Model
     {
         return static::getOne($id);
     }
+
+
 }

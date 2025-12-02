@@ -47,8 +47,7 @@
 
                     <?php if ($user && $user->getRole() === 'admin'): ?>
                     <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.kurzy')) ?>">Kurzy</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.studenti')) ?>">Študenti</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.ucitelia')) ?>">Učitelia</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>">Použivatelia</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.zapisy')) ?>">Zápisy</a></li>
                     <?php endif; ?>
 

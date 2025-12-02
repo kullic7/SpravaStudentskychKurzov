@@ -1,6 +1,7 @@
 <?php
 /** @var \Framework\Auth\AppUser $user */
 /** @var \Framework\Support\LinkGenerator $link */
+/** @var \Framework\Support\View $view */
 $view->setLayout('home');
 ?>
 
@@ -23,7 +24,7 @@ $view->setLayout('home');
         <div class="border p-4 text-center">
             <h5>Študenti</h5>
             <p class="fw-bold fs-4"><?= htmlspecialchars($studentCount ?? 0) ?></p>
-            <a href="<?= htmlspecialchars($link->url('admin.studenti')) ?>" class="btn btn-outline-dark">Zobraziť</a>
+            <a href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>" class="btn btn-outline-dark">Zobraziť</a>
         </div>
     </div>
 
@@ -31,7 +32,7 @@ $view->setLayout('home');
         <div class="border p-4 text-center">
             <h5>Učitelia</h5>
             <p class="fw-bold fs-4"><?= htmlspecialchars($teacherCount ?? 0) ?></p>
-            <a href="<?= htmlspecialchars($link->url('admin.ucitelia')) ?>" class="btn btn-outline-dark">Zobraziť</a>
+            <a href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>" class="btn btn-outline-dark">Zobraziť</a>
         </div>
     </div>
 

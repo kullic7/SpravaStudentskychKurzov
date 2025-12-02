@@ -80,4 +80,6 @@ class Teacher extends Model
     {
         return static::getOne($id);
     }
+
+
 }
