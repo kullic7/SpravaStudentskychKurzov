@@ -24,6 +24,18 @@ class AdminController extends BaseController
     // Unified users listing (students + teachers + others)
     public function pouzivatelia(Request $request): Response
     {
+        // Ensure user is logged in and is an admin
+        $appUser = $this->app->getAuthenticator()->getUser();
+        if (!$appUser->isLoggedIn()) {
+            return $this->redirect($this->url('auth.index'));
+        }
+
+        try { $viewerRole = $appUser->getRole(); } catch (\Throwable $_) { $viewerRole = null; }
+        if ($viewerRole !== 'admin') {
+            // Not an admin -> redirect to login (as requested)
+            return $this->redirect($this->url('auth.index'));
+        }
+
         // Load all users
         $users = User::getAllUsers();
 
@@ -34,6 +46,16 @@ class AdminController extends BaseController
 
     public function kurzy(Request $request): Response
     {
+        $appUser = $this->app->getAuthenticator()->getUser();
+        if (!$appUser->isLoggedIn()) {
+            return $this->redirect($this->url('auth.index'));
+        }
+
+        try { $viewerRole = $appUser->getRole(); } catch (\Throwable $_) { $viewerRole = null; }
+        if ($viewerRole !== 'admin') {
+            // Not an admin -> redirect to login (as requested)
+            return $this->redirect($this->url('auth.index'));
+        }
         // Load all courses and pass them to the view
         $courses = Course::getAllCourses();
 
@@ -42,6 +64,16 @@ class AdminController extends BaseController
 
     public function zapisy(Request $request): Response
     {
+        $appUser = $this->app->getAuthenticator()->getUser();
+        if (!$appUser->isLoggedIn()) {
+            return $this->redirect($this->url('auth.index'));
+        }
+
+        try { $viewerRole = $appUser->getRole(); } catch (\Throwable $_) { $viewerRole = null; }
+        if ($viewerRole !== 'admin') {
+            // Not an admin -> redirect to login (as requested)
+            return $this->redirect($this->url('auth.index'));
+        }
         // Look for enrollments that are not approved / pending variants
         $enrollments = Enrollment::getPendingEnrollments();
 
@@ -124,6 +156,11 @@ class AdminController extends BaseController
             'passwordConfirm' => $request->post('passwordConfirm'),
         ];
 
+        // extra fields
+        $studentNumber = trim((string)$request->post('studentNumber'));
+        $year = $request->post('year');
+        $department = trim((string)$request->post('department'));
+
         $errors = $user->updateProfile($data);
 
         // Allow admins to change the role
@@ -135,8 +172,56 @@ class AdminController extends BaseController
             }
         }
 
+        // If there are errors, pass posted extra values back to the view so the form preserves them
+        $studentData = ['studentNumber' => $studentNumber, 'year' => $year];
+        $teacherData = ['department' => $department];
+
         if (!empty($errors)) {
-            return $this->html(['userModel' => $user, 'errors' => $errors], 'editUser');
+            return $this->html(['userModel' => $user, 'errors' => $errors, 'studentData' => $studentData, 'teacherData' => $teacherData], 'editUser');
+        }
+
+        // Save or update student record if applicable
+        // Only allow editing extra fields if admin or owner (we already enforced this above)
+        $student = Student::findByUserId($user->id);
+        if ($student === null) {
+            if ($studentNumber !== '' || ($year !== null && $year !== '')) {
+                $student = new Student();
+                $student->userId = $user->id;
+            }
+        }
+        if ($student !== null) {
+            try {
+                $studentErrors = $student->update(['studentNumber' => $studentNumber, 'year' => $year]);
+                if (!empty($studentErrors)) {
+                    $errors = array_merge($errors, $studentErrors);
+                }
+            } catch (\Throwable $e) {
+                $errors[] = 'Chyba pri ukladaní študenta: ' . $e->getMessage();
+            }
+        }
+
+        // Teacher
+        $teacher = Teacher::findByUserId($user->id);
+        if ($teacher === null) {
+            if ($department !== '') {
+                $teacher = new Teacher();
+                $teacher->userId = $user->id;
+            }
+        }
+        if ($teacher !== null) {
+            try {
+                $teacherErrors = $teacher->update(['department' => $department]);
+                if (!empty($teacherErrors)) {
+                    $errors = array_merge($errors, $teacherErrors);
+                }
+            } catch (\Throwable $e) {
+                $errors[] = 'Chyba pri ukladaní učiteľa: ' . $e->getMessage();
+            }
+        }
+
+        // If any errors accumulated from student/teacher updates, re-render
+        if (!empty($errors)) {
+            return $this->html(['userModel' => $user, 'errors' => $errors, 'studentData' => $studentData, 'teacherData' => $teacherData], 'editUser');
         }
 
         return $this->redirect($this->url('admin.pouzivatelia'));

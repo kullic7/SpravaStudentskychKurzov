@@ -81,6 +81,30 @@ class Teacher extends Model
         return static::getOne($id);
     }
 
+    /**
+     * Update teacher fields from provided data and save.
+     * Expected keys: 'department'.
+     * Returns array of errors (empty on success).
+     * @param array $data
+     * @return array<string>
+     */
+    public function update(array $data): array
+    {
+        $errors = [];
+
+        $department = isset($data['department']) ? trim((string)$data['department']) : null;
+
+        if ($department !== null) {
+            $this->department = $department === '' ? null : $department;
+        }
+
+        if (!empty($errors)) {
+            return $errors;
+        }
+
+        $this->save();
+        return [];
+    }
 
 
 }

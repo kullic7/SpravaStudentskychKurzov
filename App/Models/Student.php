@@ -18,7 +18,9 @@ class Student extends Model
 {
     // Optional explicit table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'students';
+
     protected static array $columnsMap = [
+        'id' => 'id',
         'user_id' => 'userId',
         'student_number'  => 'studentNumber',
     ];
@@ -85,7 +87,42 @@ class Student extends Model
         return $items[0] ?? null;
     }
 
+    /**
+     * Update student fields from provided data and save.
+     * Expected keys: 'studentNumber', 'year'.
+     * Returns array of errors (empty on success).
+     * @param array $data
+     * @return array<string>
+     */
+    public function update(array $data): array
+    {
+        $errors = [];
+
+        $studentNumber = isset($data['studentNumber']) ? trim((string)$data['studentNumber']) : null;
+        $year = $data['year'] ?? null;
+
+        if ($studentNumber !== null) {
+            $this->studentNumber = $studentNumber === '' ? null : $studentNumber;
+        }
+
+        if ($year !== null && $year !== '') {
+            $yearInt = (int)$year;
+            if ($yearInt < 1) {
+                $errors[] = 'Ročník musí byť kladné číslo.';
+            } else {
+                $this->year = $yearInt;
+            }
+        } else {
+            $this->year = null;
+        }
+
+        if (!empty($errors)) {
+            return $errors;
+        }
+
+        $this->save();
+        return [];
+    }
 
 
 }
-

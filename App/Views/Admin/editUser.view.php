@@ -7,6 +7,10 @@
 $view->setLayout('home');
 $title = 'Upraviť používateľa';
 
+// Ensure these are defined even when controller didn't pass them (avoids notices)
+$studentData = $studentData ?? [];
+$teacherData = $teacherData ?? [];
+
 ?>
 
 <div class="card mx-auto" style="max-width:800px;">
@@ -41,19 +45,35 @@ $title = 'Upraviť používateľa';
                 <input id="email" type="email" name="email" class="form-control" value="<?= htmlspecialchars($userModel->email ?? '') ?>" required>
             </div>
 
-            <?php // role editable only for admins ?>
-            <?php $currentUser = $this->app->getAuthenticator()->getUser(); try { $isAdmin = $currentUser->getRole() === 'admin'; } catch (\Throwable $_) { $isAdmin = false; } ?>
-            <?php if ($isAdmin): ?>
+            <?php // extra student/teacher fields - show if record exists or role matches ?>
+            <?php $student = \App\Models\Student::findByUserId($userModel->id); ?>
+            <?php $teacher = \App\Models\Teacher::findByUserId($userModel->id); ?>
+            <?php $currentUser = $this->app->getAuthenticator()->getUser(); try { $canEditExtra = $currentUser->getRole() === 'admin' || $currentUser->getId() === $userModel->id; } catch (\Throwable $_) { $canEditExtra = false; } ?>
+
+            <?php if ($student !== null || ($userModel->role ?? '') === 'student'): ?>
                 <div class="mb-3">
-                    <label class="form-label" for="role">Rola</label>
-                    <input id="role" type="text" name="role" class="form-control" value="<?= htmlspecialchars($userModel->role ?? '') ?>">
+                    <label class="form-label" for="studentNumber">Študijné číslo</label>
+                    <input id="studentNumber" type="text" name="studentNumber" class="form-control" value="<?= htmlspecialchars($studentData['studentNumber'] ?? ($student->studentNumber ?? '')) ?>" <?= $canEditExtra ? '' : 'disabled' ?> >
                 </div>
-            <?php else: ?>
+
+                <div class="mb-3">
+                    <label class="form-label" for="year">Ročník</label>
+                    <input id="year" type="number" name="year" min="1" class="form-control" value="<?= htmlspecialchars($studentData['year'] ?? ($student->year ?? '')) ?>" <?= $canEditExtra ? '' : 'disabled' ?> >
+                </div>
+            <?php endif; ?>
+
+            <?php if ($teacher !== null || ($userModel->role ?? '') === 'teacher'): ?>
+                <div class="mb-3">
+                    <label class="form-label" for="department">Oddelenie</label>
+                    <input id="department" type="text" name="department" class="form-control" value="<?= htmlspecialchars($teacherData['department'] ?? ($teacher->department ?? '')) ?>" <?= $canEditExtra ? '' : 'disabled' ?> >
+                </div>
+            <?php endif; ?>
+
                 <div class="mb-3">
                     <label class="form-label">Rola</label>
                     <input type="text" class="form-control" value="<?= htmlspecialchars($userModel->role ?? '') ?>" disabled>
                 </div>
-            <?php endif; ?>
+
 
             <hr>
             <p class="mb-2">Zmena hesla (nepovinné)</p>
@@ -75,4 +95,3 @@ $title = 'Upraviť používateľa';
 </div>
 
 <script src="<?= $link->asset('js/scripts.js') ?>"></script>
-

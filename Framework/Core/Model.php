@@ -41,48 +41,39 @@ abstract class Model implements \JsonSerializable
     /** GET ALL **/
     public static function getAll(
         ?string $whereClause = null,
-        array $whereParams = [],
+        array   $whereParams = [],
         ?string $orderBy = null,
-        ?int $limit = null,
-        ?int $offset = null
-    ): array {
+        ?int    $limit = null,
+        ?int    $offset = null
+    ): array
+    {
         try {
-            $columns = static::getDBColumnNamesList();
-
-            $sql = "SELECT $columns FROM " . static::getTableName();
-            //echo "<pre>$sql</pre>";
-            //die();
-            if ($whereClause) $sql .= " WHERE $whereClause";
-            if ($orderBy) $sql .= " ORDER BY $orderBy";
-            if ($limit !== null) $sql .= " LIMIT $limit";
-            if ($offset !== null) $sql .= " OFFSET $offset";
+            $sql = "SELECT " . static::getDBColumnNamesList() . " FROM " . static::getTableName() . "";
+            if ($whereClause != null) {
+                $sql .= " WHERE $whereClause";
+            }
+            if ($orderBy !== null) {
+                $sql .= " ORDER BY $orderBy";
+            }
+            if ($limit !== null) {
+                $sql .= " LIMIT $limit";
+            }
+            if ($offset !== null) {
+                $sql .= " OFFSET $offset";
+            }
 
             $stmt = Connection::getInstance()->prepare($sql);
             $stmt->execute($whereParams);
-
-            $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            //var_dump($rows[0]);
-            //die();
-            $models = [];
-
-            foreach ($rows as $row) {
-                $model = new static();
-
-                foreach ($row as $col => $val) {
-                    $prop = static::toPropertyName($col);
-
-                    if (property_exists($model, $prop)) {
-                        $model->{$prop} = $val;
-                    }
-                }
-
-                $models[] = $model;
+            $models = $stmt->fetchAll(PDO::FETCH_CLASS | PDO::FETCH_PROPS_LATE, static::class);
+            $dataSet = new ResultSet($models);
+            /** @var static $model */
+            foreach ($models as $model) {
+                $model->_dbId = $model->getIdValue();
+                $model->_resultSet = $dataSet;
             }
-
             return $models;
-
-        } catch (PDOException $e) {
-            throw new Exception("Query failed: " . $e->getMessage());
+        } catch (PDOException $exception) {
+            throw new Exception('Query failed: ' . $exception->getMessage(), 0, $exception);
         }
     }
 
