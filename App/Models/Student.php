@@ -124,5 +124,26 @@ class Student extends Model
         return [];
     }
 
+    /**
+     * Create a student associated with a user id.
+     * Returns ['student' => Student|null, 'errors' => array].
+     * Expected keys: studentNumber, year
+     * @param int $userId
+     * @param array $data
+     * @return array{student:?static, errors:array}
+     */
+    public static function create(int $userId, array $data): array
+    {
+        $student = new static();
+        $student->userId = $userId;
+
+        $errors = $student->update($data);
+        if (!empty($errors)) {
+            return ['student' => null, 'errors' => $errors];
+        }
+
+        return ['student' => $student, 'errors' => []];
+    }
+
 
 }

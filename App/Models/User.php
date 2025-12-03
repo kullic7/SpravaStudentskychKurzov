@@ -138,6 +138,53 @@ class User extends Model
         return [];
     }
 
+    /**
+     * Create a new user from provided data. Returns array with keys:
+     * - 'user' => created User instance or null on failure
+     * - 'errors' => array of validation error messages
+     * Expected keys in $data: firstName, lastName, email, password, passwordConfirm, role
+     * @param array $data
+     * @return array{user:?static, errors:array}
+     */
+    public static function create(array $data): array
+    {
+        $errors = [];
 
+        $firstName = isset($data['firstName']) ? trim((string)$data['firstName']) : '';
+        $lastName = isset($data['lastName']) ? trim((string)$data['lastName']) : '';
+        $email = isset($data['email']) ? trim((string)$data['email']) : '';
+        $password = $data['password'] ?? null;
+        $passwordConfirm = $data['passwordConfirm'] ?? null;
+        $role = isset($data['role']) ? trim((string)$data['role']) : 'student';
+
+        if ($email === '') $errors[] = 'Email je povinný.';
+        if ($firstName === '') $errors[] = 'Meno je povinné.';
+        if ($lastName === '') $errors[] = 'Priezvisko je povinné.';
+        if ($password === null || $password === '') $errors[] = 'Heslo je povinné.';
+        if ($password !== $passwordConfirm) $errors[] = 'Heslá sa nezhodujú.';
+
+        // email uniqueness
+        if ($email !== '' && static::findByEmail($email) !== null) {
+            $errors[] = 'Používateľ s týmto emailom už existuje.';
+        }
+
+        if (!empty($errors)) {
+            return ['user' => null, 'errors' => $errors];
+        }
+
+        $user = new static();
+        $user->firstName = $firstName;
+        $user->lastName = $lastName;
+        $user->email = $email;
+        $user->passwordHash = password_hash($password, PASSWORD_DEFAULT);
+        $user->role = $role !== '' ? $role : 'student';
+
+        try {
+            $user->save();
+            return ['user' => $user, 'errors' => []];
+        } catch (\Throwable $e) {
+            return ['user' => null, 'errors' => ['Chyba pri vytváraní používateľa: ' . $e->getMessage()]];
+        }
+    }
 
 }

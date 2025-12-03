@@ -106,5 +106,26 @@ class Teacher extends Model
         return [];
     }
 
+    /**
+     * Create a teacher associated with a user id.
+     * Returns ['teacher' => Teacher|null, 'errors' => array].
+     * Expected keys: department
+     * @param int $userId
+     * @param array $data
+     * @return array{teacher:?static, errors:array}
+     */
+    public static function create(int $userId, array $data): array
+    {
+        $teacher = new static();
+        $teacher->userId = $userId;
+
+        $errors = $teacher->update($data);
+        if (!empty($errors)) {
+            return ['teacher' => null, 'errors' => $errors];
+        }
+
+        return ['teacher' => $teacher, 'errors' => []];
+    }
+
 
 }

@@ -169,6 +169,4 @@ class AuthController extends BaseController
         return $this->redirect($this->url('auth.profile'));
     }
 
-
-
 }

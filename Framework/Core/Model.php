@@ -97,7 +97,8 @@ abstract class Model implements \JsonSerializable
             $model = new static();
 
             foreach ($row as $prop => $val) {
-                if (property_exists(static::class, $prop)) {
+                // use the actual model instance when checking properties so they are assigned
+                if (property_exists($model, $prop)) {
                     $model->{$prop} = $val;
                 }
             }
@@ -128,32 +129,56 @@ abstract class Model implements \JsonSerializable
     {
         try {
             $columns = static::getDbColumns();
-            $data = [];
 
+            // Build a map of column => value from model properties
+            $fullData = [];
             foreach ($columns as $col) {
                 $prop = static::toPropertyName($col);
-                $data[$col] = $this->{$prop} ?? null;
+                $fullData[$col] = $this->{$prop} ?? null;
+            }
+
+            $pkColumn = static::getPkColumnName();
+
+            // determine columns to exclude (primary key + createdAt)
+            $excludeColumns = [$pkColumn];
+            foreach ($columns as $col) {
+                if (static::toPropertyName($col) === 'createdAt') {
+                    $excludeColumns[] = $col;
+                }
             }
 
             if ($this->_dbId === null) {
-
-                $cols = implode(', ', $columns);
-                $params = implode(', ', array_map(fn($c) => ':' . $c, $columns));
+                // INSERT: exclude primary key column and created_at so DB sequence/default generates them
+                $insertColumns = array_filter($columns, fn($c) => !in_array($c, $excludeColumns, true));
+                $cols = implode(', ', $insertColumns);
+                $params = implode(', ', array_map(fn($c) => ':' . $c, $insertColumns));
                 $sql = "INSERT INTO " . static::getTableName() .
-                    " ($cols) VALUES ($params) RETURNING " . static::getPkColumnName();
+                    " ($cols) VALUES ($params) RETURNING " . $pkColumn;
+
+                // prepare data only for insert columns
+                $data = [];
+                foreach ($insertColumns as $c) {
+                    $data[$c] = $fullData[$c];
+                }
 
                 $stmt = Connection::getInstance()->prepare($sql);
                 $stmt->execute($data);
 
                 $this->_dbId = $stmt->fetchColumn();
-                $pkProp = static::toPropertyName(static::getPkColumnName());
+                $pkProp = static::toPropertyName($pkColumn);
                 $this->{$pkProp} = $this->_dbId;
 
             } else {
-                $updates = implode(', ', array_map(fn($c) => "$c = :$c", $columns));
+                // UPDATE: exclude primary key and created_at from SET list
+                $updateColumns = array_filter($columns, fn($c) => !in_array($c, $excludeColumns, true));
+                $updates = implode(', ', array_map(fn($c) => "$c = :$c", $updateColumns));
                 $sql = "UPDATE " . static::getTableName() .
-                    " SET $updates WHERE " . static::getPkColumnName() . " = :__pk";
+                    " SET $updates WHERE " . $pkColumn . " = :__pk";
 
+                $data = [];
+                foreach ($updateColumns as $c) {
+                    $data[$c] = $fullData[$c];
+                }
                 $data['__pk'] = $this->_dbId;
 
                 $stmt = Connection::getInstance()->prepare($sql);
