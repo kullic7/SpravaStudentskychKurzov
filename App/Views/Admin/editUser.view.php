@@ -23,7 +23,7 @@ $title = 'Upraviť používateľa';
             </div>
         <?php endif; ?>
 
-        <form id="editUserForm" method="post" action="<?= htmlspecialchars($link->url('auth.updateUser')) ?>">
+        <form id="editUserForm" method="post" action="<?= htmlspecialchars($link->url('admin.updateUser')) ?>">
             <input type="hidden" name="id" value="<?= htmlspecialchars($userModel->id) ?>">
 
             <div class="mb-3">
