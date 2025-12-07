@@ -94,4 +94,4 @@ $teacherData = $teacherData ?? [];
     </div>
 </div>
 
-<script src="<?= $link->asset('js/scripts.js') ?>"></script>
+

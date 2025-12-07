@@ -69,4 +69,4 @@ $title = 'Môj profil';
 </div>
 
 <!-- Load shared frontend scripts -->
-<script src="<?= $link->asset('js/scripts.js') ?>"></script>
+<script src="<?= $link->asset('js/ajaxProfileScripts.js') ?>"></script>

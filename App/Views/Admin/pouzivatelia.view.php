@@ -14,15 +14,6 @@ $title = 'Používatelia';
 <div class="card">
     <div class="card-body">
         <h1 class="h3 mb-4">Zoznam používateľov</h1>
-        <?php if (!empty($errors)): ?>
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    <?php foreach ($errors as $err): ?>
-                        <li><?= htmlspecialchars($err) ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            </div>
-        <?php endif; ?>
         <a href="<?= htmlspecialchars($link->url('admin.createUser')) ?>" class="btn btn-sm btn-primary"> Vytvoriť používateľa</a>
         <?php if (empty($users)): ?>
             <p>Žiadni používatelia neboli nájdení.</p>

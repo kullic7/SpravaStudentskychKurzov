@@ -82,7 +82,7 @@ class AdminController extends BaseController
         return $this->redirect($this->url('admin.zapisy'));
     }
 
-    // ZOBRAZI FORMULÁR PRE UPRAVU INÉHO UŽÍVATEĽA (ADMIN alebo vlastný profil)
+
     public function editUser(Request $request): Response
     {
 
@@ -102,7 +102,7 @@ class AdminController extends BaseController
         return $this->html(['userModel' => $user], 'editUser');
     }
 
-    // SPRACOVANIE ÚPRAVY UŽÍVATEĽA (ADMIN alebo vlastné)
+
     public function updateUser(Request $request): Response
     {
         $id = $request->post('id');
@@ -175,7 +175,7 @@ class AdminController extends BaseController
         return $this->redirect($this->url('admin.pouzivatelia'));
     }
 
-    // Show form to create a new user (admin only)
+
     public function createUser(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
@@ -183,7 +183,7 @@ class AdminController extends BaseController
         return $this->html([], 'createUser');
     }
 
-    // Process creation of a new user (admin only)
+
     public function createUserPost(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
