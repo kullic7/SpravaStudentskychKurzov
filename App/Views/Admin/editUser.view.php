@@ -5,7 +5,7 @@
 /** @var \Framework\Support\LinkGenerator $link */
 
 $view->setLayout('home');
-$title = 'Upraviť používateľa';
+
 
 // Ensure these are defined even when controller didn't pass them (avoids notices)
 $studentData = $studentData ?? [];
@@ -48,24 +48,24 @@ $teacherData = $teacherData ?? [];
             <?php // extra student/teacher fields - show if record exists or role matches ?>
             <?php $student = \App\Models\Student::findByUserId($userModel->id); ?>
             <?php $teacher = \App\Models\Teacher::findByUserId($userModel->id); ?>
-            <?php $currentUser = $this->app->getAuthenticator()->getUser(); try { $canEditExtra = $currentUser->getRole() === 'admin' || $currentUser->getId() === $userModel->id; } catch (\Throwable $_) { $canEditExtra = false; } ?>
+
 
             <?php if ($student !== null || ($userModel->role ?? '') === 'student'): ?>
                 <div class="mb-3">
                     <label class="form-label" for="studentNumber">Študijné číslo</label>
-                    <input id="studentNumber" type="text" name="studentNumber" class="form-control" value="<?= htmlspecialchars($studentData['studentNumber'] ?? ($student->studentNumber ?? '')) ?>" <?= $canEditExtra ? '' : 'disabled' ?> >
+                    <input id="studentNumber" type="text" name="studentNumber" class="form-control" value="<?= htmlspecialchars($studentData['studentNumber'] ?? ($student->studentNumber ?? '')) ?>"  >
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="year">Ročník</label>
-                    <input id="year" type="number" name="year" min="1" class="form-control" value="<?= htmlspecialchars($studentData['year'] ?? ($student->year ?? '')) ?>" <?= $canEditExtra ? '' : 'disabled' ?> >
+                    <input id="year" type="number" name="year" min="1" max="5" class="form-control" value="<?= htmlspecialchars($studentData['year'] ?? ($student->year ?? '')) ?>" >
                 </div>
             <?php endif; ?>
 
             <?php if ($teacher !== null || ($userModel->role ?? '') === 'teacher'): ?>
                 <div class="mb-3">
                     <label class="form-label" for="department">Oddelenie</label>
-                    <input id="department" type="text" name="department" class="form-control" value="<?= htmlspecialchars($teacherData['department'] ?? ($teacher->department ?? '')) ?>" <?= $canEditExtra ? '' : 'disabled' ?> >
+                    <input id="department" type="text" name="department" class="form-control" value="<?= htmlspecialchars($teacherData['department'] ?? ($teacher->department ?? '')) ?>"  >
                 </div>
             <?php endif; ?>
 

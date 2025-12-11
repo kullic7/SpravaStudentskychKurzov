@@ -5,13 +5,15 @@
 /** @var \Framework\Support\LinkGenerator $link */
 
 $view->setLayout('home');
-$title = 'Vytvoriť používateľa';
 
-$posted = $posted ?? [];
 
-function pv($k, $default = '') {
+function pv(string $key, $default = ''): string
+{
     global $posted;
-    return htmlspecialchars($posted[$k] ?? $default);
+    if ($posted !== null && array_key_exists($key, $posted)) {
+        return htmlspecialchars((string)$posted[$key]);
+    }
+    return htmlspecialchars((string)$default);
 }
 ?>
 

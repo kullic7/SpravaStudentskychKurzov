@@ -140,8 +140,7 @@ class AdminController extends BaseController
             return $this->html(['userModel' => $user, 'errors' => $errors, 'studentData' => $studentData, 'teacherData' => $teacherData], 'editUser');
         }
 
-        // Save or update student record if applicable
-        // Only allow editing extra fields if admin or owner (we already enforced this above)
+
         $student = Student::findByUserId($user->id);
         if ($student !== null) {
             try {

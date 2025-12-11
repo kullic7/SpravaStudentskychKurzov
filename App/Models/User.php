@@ -120,6 +120,7 @@ class User extends Model
             }
         }
 
+
         if (!empty($errors)) {
             return $errors;
         }

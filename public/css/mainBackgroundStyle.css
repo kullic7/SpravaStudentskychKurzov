@@ -18,7 +18,7 @@
     }
 
     .auth-wrapper {
-        padding-top: 140px!important; /* viac miesta, aby karta nešla pod logo */
+        padding-top: 140px!important;
         align-items: flex-start!important;
     }
 

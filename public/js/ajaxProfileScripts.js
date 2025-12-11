@@ -1,7 +1,7 @@
 // Profile page JavaScript
 // Handles AJAX submit of the profile form and displays success/errors
 
-// Simple helper to escape HTML in messages
+
 function escapeHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
@@ -39,11 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (alertBox) alertBox.innerHTML = '<div class="alert alert-danger">Server error</div>';
             } else if (data.success) {
                 if (alertBox) alertBox.innerHTML = '<div class="alert alert-success">' + escapeHtml(data.message || 'Profil uložený') + '</div>';
-                // update visible name in header if element exists
-                const userNameElem = document.getElementById('userName');
-                if (userNameElem && data.user) {
-                    userNameElem.textContent = (data.user.firstName || '') + ' ' + (data.user.lastName || '');
-                }
             } else {
                 const errs = data.errors || ['Neznáma chyba'];
                 let html = '<div class="alert alert-danger"><ul class="mb-0">';
