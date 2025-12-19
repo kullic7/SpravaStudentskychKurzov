@@ -114,6 +114,97 @@ class Enrollment extends Model
     }
 
     /**
+     * Return the number of enrollments for a specific student that match a given status.
+     * @param int $studentId
+     * @param string|null $status Optional status to filter by (default 'approved'). If null, counts all enrollments for the student.
+     * @return int
+     */
+    public static function countByStudent(int $studentId, ?string $status = 'approved'): int
+    {
+        if ($status === null) {
+            return static::getCount('student_id = ?', [$studentId]);
+        }
+        return static::getCount('student_id = ? AND status = ?', [$studentId, $status]);
+    }
+
+    /**
+     * Return the number of pending enrollments for a specific student.
+     * @param int $studentId
+     * @param array|null $statuses
+     * @return int
+     */
+    public static function pendingCountByStudent(int $studentId, ?array $statuses = null): int
+    {
+        $statuses = $statuses ?? ['not_approved', 'not approved', 'not aproved', 'pending'];
+        if (empty($statuses)) return 0;
+        $placeholders = implode(', ', array_fill(0, count($statuses), '?'));
+        $where = "student_id = ? AND status IN ($placeholders)";
+        $params = array_merge([$studentId], $statuses);
+        return static::getCount($where, $params);
+    }
+
+    /**
+     * Compute average numeric grade for a student across enrollments that have a grade.
+     * Supports numeric grades and letter grades mapped as: A=1, B=1.5, C=2, D=3, E=4, Fx=5.
+     * Returns float rounded to 2 decimals or null if no valid grades available.
+     * @param int $studentId
+     * @return float|null
+     */
+    public static function averageGradeByStudent(int $studentId)
+    {
+        // fetch enrollments for student that have a non-empty grade
+        $items = static::getAll('student_id = ? AND grade IS NOT NULL AND grade <> ?', [$studentId, '']);
+        $sum = 0.0;
+        $count = 0;
+
+        // mapping for letter grades (case-insensitive)
+        $letterMap = [
+            'A'  => 1.0,
+            'B'  => 1.5,
+            'C'  => 2.0,
+            'D'  => 3.0,
+            'E'  => 4.0,
+            'FX' => 5.0,
+            'F'  => 5.0, // be lenient: treat F as Fx
+        ];
+
+        foreach ($items as $it) {
+            $raw = $it->grade ?? '';
+            $g = trim((string)$raw);
+            if ($g === '') continue;
+
+            // try letter grade first (exact tokens like A, B, C, D, E, FX, F)
+            $upper = mb_strtoupper($g);
+            // extract first token of letters (e.g. 'B+' -> 'B', 'fx' -> 'FX')
+            if (preg_match('/^([A-Za-z]{1,2})\b/', $upper, $m)) {
+                $tok = $m[1];
+                // normalize 'F' as 'FX'
+                if ($tok === 'F') $tok = 'FX';
+                if (array_key_exists($tok, $letterMap)) {
+                    $sum += $letterMap[$tok];
+                    $count++;
+                    continue;
+                }
+            }
+
+            // fallback: try to find numeric token inside string (supports comma or dot)
+            if (preg_match('/(-?\d+[.,]?\d*)/', $g, $m)) {
+                $numStr = str_replace(',', '.', $m[1]);
+                if (is_numeric($numStr)) {
+                    $sum += (float)$numStr;
+                    $count++;
+                    continue;
+                }
+            }
+
+            // otherwise skip (non-numeric, non-mapped grade)
+        }
+
+        if ($count === 0) return null;
+        return (float) round($sum / $count, 2);
+    }
+
+    /**
      * Approve an enrollment by id (set status = 'approved'). Returns true if updated, false otherwise.
      * @param int $id
      * @return bool
