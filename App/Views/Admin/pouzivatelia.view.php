@@ -1,5 +1,7 @@
 <?php
 /** @var array $users */
+/** @var array $students */
+/** @var array $teachers */
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
 
@@ -22,7 +24,7 @@ $title = 'Používatelia';
                 <table class="table table-striped" id="usersTable">
                     <thead>
                         <tr>
-                            <th>#</th>
+
                             <th>Meno</th>
                             <th>Priezvisko</th>
                             <th>Email</th>
@@ -34,18 +36,48 @@ $title = 'Používatelia';
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($users as $user):
+                        <?php
+                        // Build lookup maps so we don't do DB calls inside the loop
+                        $studentsByUser = [];
+                        if (!empty($students) && is_array($students)) {
+                            foreach ($students as $s) {
+                                // handle possible property names for the foreign key
+                                $uid = $s->userId ?? $s->user_id ?? $s->user ?? null;
+                                if ($uid === null) {
+                                    // fallback: maybe student record uses the same id as user (rare) -> skip if not present
+                                    $uid = $s->userId ?? $s->user_id ?? $s->id ?? null;
+                                }
+                                if ($uid !== null) {
+                                    $studentsByUser[$uid] = $s;
+                                }
+                            }
+                        }
+
+                        $teachersByUser = [];
+                        if (!empty($teachers) && is_array($teachers)) {
+                            foreach ($teachers as $t) {
+                                $uid = $t->userId ?? $t->user_id ?? $t->user ?? null;
+                                if ($uid === null) {
+                                    $uid = $t->userId ?? $t->user_id ?? $t->id ?? null;
+                                }
+                                if ($uid !== null) {
+                                    $teachersByUser[$uid] = $t;
+                                }
+                            }
+                        }
+
+                        foreach ($users as $user):
                             $firstName = htmlspecialchars($user->firstName ?? '-');
                             $lastName = htmlspecialchars($user->lastName ?? '-');
                             $email = htmlspecialchars($user->email ?? '-');
                             $role = htmlspecialchars($user->role ?? '-');
 
-                            // load student/teacher rows (if exist)
-                            $student = Student::findByUserId($user->id);
-                            $teacher = Teacher::findByUserId($user->id);
+                            // load from maps
+                            $student = $studentsByUser[$user->id] ?? null;
+                            $teacher = $teachersByUser[$user->id] ?? null;
                         ?>
                         <tr data-user-id="<?= htmlspecialchars($user->id) ?>" data-role="<?= htmlspecialchars($user->role ?? '') ?>">
-                            <td><?= htmlspecialchars($user->id) ?></td>
+
                             <td data-col="firstName"><span class="value"><?= $firstName ?></span></td>
                             <td data-col="lastName"><span class="value"><?= $lastName ?></span></td>
                             <td data-col="email"><span class="value"><?= $email ?></span></td>

@@ -45,7 +45,12 @@ class AdminController extends BaseController
         // Load all users
         $users = User::getAllUsers();
 
-        return $this->html(['users' => $users]);
+        // Also load students and teachers once and pass to the view
+        // so the view doesn't need to do per-row DB lookups.
+        $students = Student::getAllStudents();
+        $teachers = Teacher::getAllTeachers();
+
+        return $this->html(['users' => $users, 'students' => $students, 'teachers' => $teachers]);
     }
 
 
