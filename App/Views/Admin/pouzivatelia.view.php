@@ -24,7 +24,6 @@ $title = 'Používatelia';
                 <table class="table table-striped" id="usersTable">
                     <thead>
                         <tr>
-
                             <th>Meno</th>
                             <th>Priezvisko</th>
                             <th>Email</th>
@@ -77,7 +76,6 @@ $title = 'Používatelia';
                             $teacher = $teachersByUser[$user->id] ?? null;
                         ?>
                         <tr data-user-id="<?= htmlspecialchars($user->id) ?>" data-role="<?= htmlspecialchars($user->role ?? '') ?>">
-
                             <td data-col="firstName"><span class="value"><?= $firstName ?></span></td>
                             <td data-col="lastName"><span class="value"><?= $lastName ?></span></td>
                             <td data-col="email"><span class="value"><?= $email ?></span></td>

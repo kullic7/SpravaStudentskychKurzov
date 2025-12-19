@@ -1,5 +1,6 @@
 <?php
 /** @var array $courses */
+/** @var array $courseTeachers */
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Core\IAuthenticator $auth */
 /** @var \Framework\Support\LinkGenerator $link */
@@ -23,7 +24,6 @@ $title = 'Kurzy';
                 <table class="table table-striped">
                     <thead>
                         <tr>
-                            <th>#</th>
                             <th>Názov</th>
                             <th>Učiteľ</th>
                             <th>Email</th>
@@ -33,16 +33,37 @@ $title = 'Kurzy';
                     </thead>
                     <tbody>
                         <?php foreach ($courses as $course):
-                            $t = $course->getTeacher();
-                            $u = $t ? $t->getUser() : null;
-                            $teacherName = $u ? ($u->firstName . ' ' . $u->lastName) : '-';
-                            $teacherEmail = $u ? $u->email : '-';
+                            // Use the precomputed courseTeachers map attached by the controller
+                            $teachers = $courseTeachers[$course->id] ?? [];
+
+                            if (empty($teachers)) {
+                                $teacherNames = '-';
+                                $teacherEmails = '-';
+                            } else {
+                                $names = [];
+                                $emails = [];
+                                foreach ($teachers as $tEntry) {
+                                    // $tEntry is an object with keys: 'teacher', 'user', 'name', 'email'
+                                    $name = $tEntry->name ?? null;
+                                    $email = $tEntry->email ?? null;
+                                    if ($name === null && !empty($tEntry->user)) {
+                                        $u = $tEntry->user;
+                                        $name = ($u->firstName ?? '') . ' ' . ($u->lastName ?? '');
+                                    }
+                                    if ($email === null && !empty($tEntry->user)) {
+                                        $email = $tEntry->user->email ?? null;
+                                    }
+                                    $names[] = htmlspecialchars(trim($name) === '' ? '-' : $name);
+                                    $emails[] = htmlspecialchars(trim($email) === '' ? '-' : $email);
+                                }
+                                $teacherNames = implode(', ', $names);
+                                $teacherEmails = implode(', ', $emails);
+                            }
                         ?>
                         <tr>
-                            <td><?= htmlspecialchars($course->id) ?></td>
                             <td><?= htmlspecialchars($course->name) ?></td>
-                            <td><?= htmlspecialchars($teacherName) ?></td>
-                            <td><?= htmlspecialchars($teacherEmail) ?></td>
+                            <td><?= $teacherNames ?></td>
+                            <td><?= $teacherEmails ?></td>
                             <td><?= htmlspecialchars($course->credits) ?></td>
                             <td><?= htmlspecialchars($course->description) ?></td>
                         </tr>
@@ -53,4 +74,3 @@ $title = 'Kurzy';
         <?php endif; ?>
     </div>
 </div>
-

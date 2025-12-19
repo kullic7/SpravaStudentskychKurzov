@@ -61,7 +61,26 @@ class AdminController extends BaseController
         // Load all courses and pass them to the view
         $courses = Course::getAllCourses();
 
-        return $this->html(['courses' => $courses]);
+        // Precompute teachers for each course to avoid DB calls in the view
+        $courseTeachers = [];
+        foreach ($courses as $c) {
+            $teachersForCourse = [];
+            if (!empty($c->teacherId)) {
+                $t = Teacher::findById($c->teacherId);
+                if ($t !== null) {
+                    $u = $t->getUser();
+                    $teachersForCourse[] = (object)[
+                        'teacher' => $t,
+                        'user' => $u,
+                        'name' => $u ? ($u->firstName . ' ' . $u->lastName) : null,
+                        'email' => $u ? $u->email : null,
+                    ];
+                }
+            }
+            $courseTeachers[$c->id] = $teachersForCourse;
+        }
+
+        return $this->html(['courses' => $courses, 'courseTeachers' => $courseTeachers]);
     }
 
     public function zapisy(Request $request): Response
