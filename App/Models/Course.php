@@ -84,4 +84,114 @@ class Course extends Model
     {
         return static::getOne($id);
     }
+
+    /**
+     * Create a new course from provided data. Returns array with keys:
+     * - 'course' => created Course instance or null on failure
+     * - 'errors' => array of validation error messages
+     * Expected keys in $data: name, description, credits, teacherId
+     * @param array $data
+     * @return array{course:?static, errors:array}
+     */
+    public static function create(array $data): array
+    {
+        $errors = [];
+
+        $name = isset($data['name']) ? trim((string)$data['name']) : '';
+        $description = isset($data['description']) ? trim((string)$data['description']) : null;
+        $credits = $data['credits'] ?? null;
+        $teacherId = $data['teacherId'] ?? null;
+
+        if ($name === '') $errors[] = 'Názov kurzu je povinný.';
+
+        if ($credits !== null && $credits !== '') {
+            $creditsInt = (int)$credits;
+            if ($creditsInt < 0) $errors[] = 'Kredity musia byť nezáporné číslo.';
+        } else {
+            $creditsInt = null;
+        }
+
+        $teacherIdInt = null;
+        if ($teacherId !== null && $teacherId !== '') {
+            $teacherIdInt = (int)$teacherId;
+            if (Teacher::findById($teacherIdInt) === null) {
+                $errors[] = 'Vybraný učiteľ neexistuje.';
+            }
+        }
+
+        if (!empty($errors)) {
+            return ['course' => null, 'errors' => $errors];
+        }
+
+        $course = new static();
+        $course->name = $name;
+        $course->description = $description === '' ? null : $description;
+        $course->credits = $creditsInt === null ? null : $creditsInt;
+        $course->teacherId = $teacherIdInt;
+
+        try {
+            $course->save();
+            return ['course' => $course, 'errors' => []];
+        } catch (\Throwable $e) {
+            return ['course' => null, 'errors' => ['Chyba pri vytváraní kurzu: ' . $e->getMessage()]];
+        }
+    }
+
+    /**
+     * Update course fields from provided data and save.
+     * Expected keys: 'name', 'description', 'credits', 'teacherId'
+     * Returns array of errors (empty on success).
+     * @param array $data
+     * @return array<string>
+     */
+    public function update(array $data): array
+    {
+        $errors = [];
+
+        $name = isset($data['name']) ? trim((string)$data['name']) : null;
+        $description = array_key_exists('description', $data) ? trim((string)$data['description']) : null;
+        $credits = $data['credits'] ?? null;
+        $teacherId = $data['teacherId'] ?? null;
+
+        if ($name !== null) {
+            if ($name === '') {
+                $errors[] = 'Názov kurzu je povinný.';
+            } else {
+                $this->name = $name;
+            }
+        }
+
+        if ($description !== null) {
+            $this->description = $description === '' ? null : $description;
+        }
+
+        if ($credits !== null && $credits !== '') {
+            $creditsInt = (int)$credits;
+            if ($creditsInt < 0) {
+                $errors[] = 'Kredity musia byť nezáporné číslo.';
+            } else {
+                $this->credits = $creditsInt;
+            }
+        }
+
+        // Allow explicitly clearing the teacher: detect whether caller provided the 'teacherId' key.
+        if (array_key_exists('teacherId', $data)) {
+            // if empty string or null -> clear teacher
+            if ($teacherId === null || $teacherId === '') {
+                $this->teacherId = null;
+            } else {
+                $teacherIdInt = (int)$teacherId;
+                if (Teacher::findById($teacherIdInt) === null) {
+                    $errors[] = 'Vybraný učiteľ neexistuje.';
+                } else {
+                    $this->teacherId = $teacherIdInt;
+                }
+            }
+        }
+
+        if (!empty($errors)) return $errors;
+
+        $this->save();
+        return [];
+    }
 }
