@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
+use App\Models\Enrollment;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use App\Models\Course;
-use App\Models\Student;
-use App\Models\Teacher;
+use App\Models\User;
+
+
 
 class HomeController extends BaseController
 {
@@ -22,13 +24,13 @@ class HomeController extends BaseController
             case 'admin':
                 // fetch counts from DB and pass to view
                 $courseCount = Course::getCount();
-                $studentCount = Student::getCount();
-                $teacherCount = Teacher::getCount();
+                $userCount = User::getCount();
+                $enrollmentCount = Enrollment::getPendingCount();
 
                 return $this->html([
                     'courseCount' => $courseCount,
-                    'studentCount' => $studentCount,
-                    'teacherCount' => $teacherCount
+                    'userCount' => $userCount,
+                    'enrollmentCount' => $enrollmentCount
                 ], 'admin');
             case 'teacher':
                 return $this->html([], 'teacher');

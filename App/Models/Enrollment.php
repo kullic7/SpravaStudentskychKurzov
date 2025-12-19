@@ -101,6 +101,19 @@ class Enrollment extends Model
     }
 
     /**
+     * Return the number of enrollments with pending/not-approved statuses.
+     * @param array|null $statuses optional array of status strings to treat as pending
+     * @return int
+     */
+    public static function getPendingCount(?array $statuses = null): int
+    {
+        $statuses = $statuses ?? ['not_approved', 'not approved', 'not aproved', 'pending'];
+        if (empty($statuses)) return 0;
+        $placeholders = implode(', ', array_fill(0, count($statuses), '?'));
+        return static::getCount("status IN ($placeholders)", $statuses);
+    }
+
+    /**
      * Approve an enrollment by id (set status = 'approved'). Returns true if updated, false otherwise.
      * @param int $id
      * @return bool

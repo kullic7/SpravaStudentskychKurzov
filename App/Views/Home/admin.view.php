@@ -22,17 +22,17 @@ $view->setLayout('home');
 
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="border p-4 text-center">
-            <h5>Študenti</h5>
-            <p class="fw-bold fs-4"><?= htmlspecialchars($studentCount ?? 0) ?></p>
+            <h5>Používatelia</h5>
+            <p class="fw-bold fs-4"><?= htmlspecialchars($userCount ?? 0) ?></p>
             <a href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>" class="btn btn-outline-dark">Zobraziť</a>
         </div>
     </div>
 
     <div class="col-md-3 col-sm-6 mb-3">
         <div class="border p-4 text-center">
-            <h5>Učitelia</h5>
-            <p class="fw-bold fs-4"><?= htmlspecialchars($teacherCount ?? 0) ?></p>
-            <a href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>" class="btn btn-outline-dark">Zobraziť</a>
+            <h5>Zápisy</h5>
+            <p class="fw-bold fs-4"><?= htmlspecialchars($enrollmentCount ?? 0) ?></p>
+            <a href="<?= htmlspecialchars($link->url('admin.zapisy')) ?>" class="btn btn-outline-dark">Zobraziť</a>
         </div>
     </div>
 
