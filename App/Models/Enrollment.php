@@ -144,6 +144,51 @@ class Enrollment extends Model
     }
 
     /**
+     * Create a new enrollment for a student and course.
+     * Returns ['enrollment' => Enrollment|null, 'errors' => array].
+     * Will not create a duplicate enrollment if one already exists for the same student+course.
+     * @param int $studentId
+     * @param int $courseId
+     * @param array $data optional, supports 'status' and 'grade'
+     * @return array{enrollment:?static, errors:array}
+     */
+    public static function create(int $studentId, int $courseId, array $data = []): array
+    {
+        $errors = [];
+
+        // basic validation
+        if ($studentId <= 0) {
+            $errors[] = 'Neplatné ID študenta.';
+        }
+        if ($courseId <= 0) {
+            $errors[] = 'Neplatné ID kurzu.';
+        }
+
+        if (!empty($errors)) {
+            return ['enrollment' => null, 'errors' => $errors];
+        }
+
+        // check duplicate
+        $exists = static::getCount('student_id = ? AND course_id = ?', [$studentId, $courseId]);
+        if ($exists > 0) {
+            return ['enrollment' => null, 'errors' => ['Študent je už zapísaný na tento kurz.']];
+        }
+
+        $en = new static();
+        $en->studentId = $studentId;
+        $en->courseId = $courseId;
+        $en->status = $data['status'] ?? 'not_approved';
+        $en->grade = $data['grade'] ?? null;
+
+        try {
+            $en->save();
+            return ['enrollment' => $en, 'errors' => []];
+        } catch (\Throwable $e) {
+            return ['enrollment' => null, 'errors' => ['Chyba pri ukladaní zápisu: ' . $e->getMessage()]];
+        }
+    }
+
+    /**
      * Compute average numeric grade for a student across enrollments that have a grade.
      * Supports numeric grades and letter grades mapped as: A=1, B=1.5, C=2, D=3, E=4, Fx=5.
      * Returns float rounded to 2 decimals or null if no valid grades available.

@@ -54,28 +54,18 @@ class AdminController extends BaseController
         return $this->html(['users' => $users, 'students' => $students, 'teachers' => $teachers]);
     }
 
-
-    public function zapisy(Request $request): Response
-    {
-        if ($resp = $this->requireAdmin()) return $resp;
-        // Look for enrollments that are not approved / pending variants
-        $enrollments = Enrollment::getPendingEnrollments();
-
-        return $this->html(['enrollments' => $enrollments]);
-    }
-
     public function approveEnrollment(Request $request): Response
     {
         // Accept id via POST
         $id = $request->post('id');
         if ($id === null) {
-            return $this->redirect($this->url('admin.zapisy'));
+            return $this->redirect($this->url('enrollment.zapisy'));
         }
 
         // Use model helper to approve
         Enrollment::approveById((int)$id);
 
-        return $this->redirect($this->url('admin.zapisy'));
+        return $this->redirect($this->url('enrollment.zapisy'));
     }
 
 
@@ -266,7 +256,7 @@ class AdminController extends BaseController
             return $this->html(['errors' => $res['errors'], 'posted' => $posted, 'teachers' => $teachers], 'createCourse');
         }
 
-        return $this->redirect($this->url('admin.kurzy'));
+        return $this->redirect($this->url('course.kurzy'));
     }
 
     // Edit course form (GET)
@@ -276,13 +266,13 @@ class AdminController extends BaseController
 
         $requestedId = $request->get('id');
         if ($requestedId === null) {
-            return $this->redirect($this->url('admin.kurzy'));
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         $courseId = (int)$requestedId;
         $course = Course::findById($courseId);
         if ($course === null) {
-            return $this->redirect($this->url('admin.kurzy'));
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         // provide list of teachers for select
@@ -298,12 +288,12 @@ class AdminController extends BaseController
 
         $id = $request->post('id');
         if ($id === null) {
-            return $this->redirect($this->url('admin.kurzy'));
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         $course = Course::findById((int)$id);
         if ($course === null) {
-            return $this->redirect($this->url('admin.kurzy'));
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         $posted = [
@@ -324,7 +314,7 @@ class AdminController extends BaseController
             return $this->html(['errors' => $errors, 'posted' => $posted, 'course' => $course, 'teachers' => $teachers], 'editCourse');
         }
 
-        return $this->redirect($this->url('admin.kurzy'));
+        return $this->redirect($this->url('course.kurzy'));
     }
 
     // Delete a course (admin only)
@@ -334,12 +324,12 @@ class AdminController extends BaseController
 
         $id = $request->post('id');
         if ($id === null) {
-            return $this->redirect($this->url('admin.kurzy'));
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         $course = Course::findById((int)$id);
         if ($course === null) {
-            return $this->redirect($this->url('admin.kurzy'));
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         try {
@@ -368,7 +358,7 @@ class AdminController extends BaseController
             return $this->html(['courses' => $courses, 'courseTeachers' => $courseTeachers, 'errors' => ['Chyba pri mazaní kurzu: ' . $e->getMessage()]], 'kurzy');
         }
 
-        return $this->redirect($this->url('admin.kurzy'));
+        return $this->redirect($this->url('course.kurzy'));
     }
 
     // Delete a user (admin only)

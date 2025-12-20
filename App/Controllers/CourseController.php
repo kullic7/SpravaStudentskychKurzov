@@ -44,7 +44,7 @@ class CourseController extends BaseController
 
         // Decide permissions based on current user's role
         $appUser = $this->app->getAuthenticator()->getUser();
-        $role = null;
+
         try { $role = $appUser->getRole(); } catch (\Throwable $_) { $role = null; }
 
         $isAdmin = ($role === 'admin');

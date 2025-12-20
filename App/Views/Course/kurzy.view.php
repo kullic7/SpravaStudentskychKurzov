@@ -77,9 +77,9 @@ $title = 'Kurzy';
                             <?php elseif (!empty($isStudent)): ?>
                             <td class="actions">
                                 <!-- Enroll form - action should point to the student's enroll handler. If you have a route like student.enroll use that. -->
-                                <form action="<?= htmlspecialchars($link->url('student.enroll')) ?>" method="post" class="d-inline">
+                                <form action="<?= htmlspecialchars($link->url('student.zapis')) ?>" method="post" class="d-inline">
                                     <input type="hidden" name="courseId" value="<?= htmlspecialchars($course->id) ?>">
-                                    <button type="submit" class="btn btn-sm btn-primary">Prihlásiť sa</button>
+                                    <button type="submit" class="btn btn-sm btn-primary">Zapísať sa</button>
                                 </form>
                             </td>
                             <?php endif; ?>

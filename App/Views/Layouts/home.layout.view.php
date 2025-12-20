@@ -50,16 +50,15 @@
 
                     <?php if ($user && $user->getRole() === 'admin'): ?>
                     <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>">Použivatelia</a></li>
-                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.zapisy')) ?>">Zápisy</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('enrollment.zapisy')) ?>">Zápisy</a></li>
                     <?php endif; ?>
 
                     <?php if ($user && $user->getRole() === 'student'): ?>
                     <li class="nav-item"><a class="nav-link" href="#">Známky</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Zápisy</a></li>
+                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('enrollment.zapisy')) ?>">Zápisy</a></li>
                     <?php endif; ?>
 
                     <?php if ($user && $user->getRole() === 'teacher'): ?>
-                    <li class="nav-item"><a class="nav-link" href="#">Kurzy</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Študenti</a></li>
                     <?php endif; ?>
                     <li class="nav-item">

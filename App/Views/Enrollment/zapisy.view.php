@@ -1,20 +1,16 @@
 <?php
 /** @var array $enrollments */
 /** @var \Framework\Support\View $view */
-/** @var \Framework\Core\IAuthenticator $auth */
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \App\Models\LoggedUser|null $user */
 
-// Use the home layout for this view
 $view->setLayout('home');
-
-// Page title
-$title = 'Zápisy - schválenie';
+$title = 'Zápisy - moje / čakajúce';
 ?>
 
 <div class="card">
     <div class="card-body">
-        <h1 class="h3 mb-4">Zápisy čakajúce na schválenie</h1>
+        <h1 class="h3 mb-4">Zápisy</h1>
 
         <?php if (empty($enrollments)): ?>
             <p>Žiadne čakajúce zápisy neboli nájdené.</p>
@@ -47,10 +43,17 @@ $title = 'Zápisy - schválenie';
                             <td><?= htmlspecialchars($courseName) ?></td>
                             <td><?= htmlspecialchars($en->status) ?></td>
                             <td>
-                                <form method="post" action="<?= htmlspecialchars($link->url('admin.approveEnrollment')) ?>" style="display:inline-block;">
-                                    <input type="hidden" name="id" value="<?= htmlspecialchars($en->id) ?>">
-                                    <button type="submit" class="btn btn-sm btn-success">Schváliť</button>
-                                </form>
+                                <?php if ($user && $user->getRole() === 'admin'): ?>
+                                    <form method="post" action="<?= htmlspecialchars($link->url('admin.approveEnrollment')) ?>" style="display:inline-block;">
+                                        <input type="hidden" name="id" value="<?= htmlspecialchars($en->id) ?>">
+                                        <button type="submit" class="btn btn-sm btn-success">Schváliť</button>
+                                    </form>
+                                <?php elseif ($user && $user->getRole() === 'student'): ?>
+                                    <form method="post" action="<?= htmlspecialchars($link->url('student.cancelEnrollment')) ?>" style="display:inline-block;">
+                                        <input type="hidden" name="id" value="<?= htmlspecialchars($en->id) ?>">
+                                        <button type="submit" class="btn btn-sm btn-warning">Odhlásiť sa</button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
