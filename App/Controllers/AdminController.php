@@ -55,38 +55,6 @@ class AdminController extends BaseController
     }
 
 
-
-    public function kurzy(Request $request): Response
-    {
-        if ($resp = $this->requireAdmin()) return $resp;
-        // Load all courses and pass them to the view
-        $courses = Course::getAllCourses();
-
-        // Precompute teachers for each course to avoid DB calls in the view
-        $courseTeachers = [];
-        foreach ($courses as $c) {
-            $teachersForCourse = [];
-            if (!empty($c->teacherId)) {
-                $t = Teacher::findById($c->teacherId);
-                if ($t !== null) {
-                    $u = $t->getUser();
-                    $teachersForCourse[] = (object)[
-                        'teacher' => $t,
-                        'user' => $u,
-                        'name' => $u ? ($u->firstName . ' ' . $u->lastName) : null,
-                        'email' => $u ? $u->email : null,
-                    ];
-                }
-            }
-            $courseTeachers[$c->id] = $teachersForCourse;
-        }
-
-        // also provide a flat list of teachers for the client-side editor
-        $allTeachers = Teacher::getAllTeachers();
-
-        return $this->html(['courses' => $courses, 'courseTeachers' => $courseTeachers, 'allTeachers' => $allTeachers]);
-    }
-
     public function zapisy(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;

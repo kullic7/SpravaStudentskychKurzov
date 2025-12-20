@@ -2,15 +2,12 @@
 /** @var array $courses */
 /** @var array $courseTeachers */
 /** @var array $allTeachers */
+/** @var bool $isAdmin */
+/** @var bool $isStudent */
 /** @var \Framework\Support\View $view */
-/** @var \Framework\Core\IAuthenticator $auth */
 /** @var \Framework\Support\LinkGenerator $link */
-/** @var \App\Models\LoggedUser|null $user */
 
-// Use the home layout for this view
 $view->setLayout('home');
-
-// Page title
 $title = 'Kurzy';
 ?>
 
@@ -18,7 +15,9 @@ $title = 'Kurzy';
     <div class="card-body">
         <h1 class="h3 mb-4">Zoznam kurzov</h1>
 
-        <a href="<?= htmlspecialchars($link->url('admin.createCourse')) ?>" class="btn btn-sm btn-primary mb-3">Vytvoriť kurz</a>
+        <?php if (!empty($isAdmin)): ?>
+            <a href="<?= htmlspecialchars($link->url('admin.createCourse')) ?>" class="btn btn-sm btn-primary mb-3">Vytvoriť kurz</a>
+        <?php endif; ?>
 
         <?php if (empty($courses)): ?>
             <p>Žiadne kurzy neboli nájdené.</p>
@@ -32,12 +31,11 @@ $title = 'Kurzy';
                             <th>Email</th>
                             <th>Kredity</th>
                             <th>Popis</th>
-                            <th>Akcie</th>
+                            <?php if (!empty($isAdmin)): ?><th>Akcie</th><?php elseif (!empty($isStudent)): ?><th>Akcia</th><?php endif; ?>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($courses as $course):
-                            // Use the precomputed courseTeachers map attached by the controller
                             $teachers = $courseTeachers[$course->id] ?? [];
 
                             $teacherNames = '-';
@@ -56,7 +54,6 @@ $title = 'Kurzy';
                                 $teacherEmails = implode(', ', $emails);
                             }
 
-                            // Prepare data attributes for JS editor
                             $dataAttrs = 'data-course-id="' . htmlspecialchars($course->id) . '" '
                                 . 'data-teacher-id="' . htmlspecialchars($course->teacherId ?? $teacherIdForRow) . '" '
                                 . 'data-credits="' . htmlspecialchars($course->credits ?? '') . '" '
@@ -68,6 +65,8 @@ $title = 'Kurzy';
                             <td data-field="teacherEmail"><span class="value"><?= htmlspecialchars($teacherEmails) ?></span></td>
                             <td data-field="credits"><span class="value"><?= htmlspecialchars($course->credits) ?></span></td>
                             <td data-field="description"><span class="value"><?= htmlspecialchars($course->description) ?></span></td>
+
+                            <?php if (!empty($isAdmin)): ?>
                             <td class="actions">
                                 <a href="<?= htmlspecialchars($link->url('admin.editCourse', ['id' => $course->id])) ?>" class="btn btn-sm btn-secondary">Upraviť</a>
                                 <form action="<?= htmlspecialchars($link->url('admin.deleteCourse')) ?>" method="post" onsubmit="return confirm('Naozaj chcete zmazať tento kurz?');" class="d-inline">
@@ -75,6 +74,15 @@ $title = 'Kurzy';
                                     <button type="submit" class="btn btn-sm btn-danger">Zmazať</button>
                                 </form>
                             </td>
+                            <?php elseif (!empty($isStudent)): ?>
+                            <td class="actions">
+                                <!-- Enroll form - action should point to the student's enroll handler. If you have a route like student.enroll use that. -->
+                                <form action="<?= htmlspecialchars($link->url('student.enroll')) ?>" method="post" class="d-inline">
+                                    <input type="hidden" name="courseId" value="<?= htmlspecialchars($course->id) ?>">
+                                    <button type="submit" class="btn btn-sm btn-primary">Prihlásiť sa</button>
+                                </form>
+                            </td>
+                            <?php endif; ?>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -83,3 +91,4 @@ $title = 'Kurzy';
         <?php endif; ?>
     </div>
 </div>
+

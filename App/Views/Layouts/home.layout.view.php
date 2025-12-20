@@ -44,15 +44,16 @@
                     <li class="nav-item">
                         <a class="nav-link" href="<?= htmlspecialchars($link->url('home.index')) ?>">Domov</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?= htmlspecialchars($link->url('course.kurzy')) ?>">Kurzy</a>
+                    </li>
 
                     <?php if ($user && $user->getRole() === 'admin'): ?>
-                    <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.kurzy')) ?>">Kurzy</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>">Použivatelia</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('admin.zapisy')) ?>">Zápisy</a></li>
                     <?php endif; ?>
 
                     <?php if ($user && $user->getRole() === 'student'): ?>
-                    <li class="nav-item"><a class="nav-link" href="#">Kurzy</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Známky</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Zápisy</a></li>
                     <?php endif; ?>
