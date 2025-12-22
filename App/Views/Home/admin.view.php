@@ -16,7 +16,7 @@ $view->setLayout('home');
         <div class="border p-4 text-center">
             <h5>Kurzy</h5>
             <p class="fw-bold fs-4"><?= htmlspecialchars($courseCount ?? 0) ?></p>
-            <a href="<?= htmlspecialchars($link->url('admin.kurzy')) ?>" class="btn btn-outline-dark">Zobraziť</a>
+            <a href="<?= htmlspecialchars($link->url('course.kurzy')) ?>" class="btn btn-outline-dark">Zobraziť</a>
         </div>
     </div>
 
@@ -32,7 +32,7 @@ $view->setLayout('home');
         <div class="border p-4 text-center">
             <h5>Zápisy</h5>
             <p class="fw-bold fs-4"><?= htmlspecialchars($enrollmentCount ?? 0) ?></p>
-            <a href="<?= htmlspecialchars($link->url('admin.zapisy')) ?>" class="btn btn-outline-dark">Zobraziť</a>
+            <a href="<?= htmlspecialchars($link->url('enrollment.zapisy')) ?>" class="btn btn-outline-dark">Zobraziť</a>
         </div>
     </div>
 

@@ -58,7 +58,7 @@ $title = 'Vytvoriť kurz';
 
             <div class="mb-3">
                 <button type="submit" class="btn btn-primary">Vytvoriť</button>
-                <a href="<?= htmlspecialchars($link->url('admin.kurzy')) ?>" class="btn btn-secondary">Zrušiť</a>
+                <a href="<?= htmlspecialchars($link->url('course.kurzy')) ?>" class="btn btn-secondary">Zrušiť</a>
             </div>
         </form>
     </div>

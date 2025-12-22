@@ -250,6 +250,60 @@ class Enrollment extends Model
     }
 
     /**
+     * Compute average numeric grade for a course across enrollments that have a grade and are approved.
+     * Uses the same letter->numeric mapping as averageGradeByStudent.
+     * Returns float (not rounded) or null if no valid grades available.
+     * @param int $courseId
+     * @return float|null
+     */
+    public static function averageGradeByCourse(int $courseId): ?float
+    {
+        // fetch enrollments for course that are approved and have a non-empty grade
+        $items = static::getAll('course_id = ? AND status = ? AND grade IS NOT NULL AND grade <> ?', [$courseId, 'approved', '']);
+        $sum = 0.0;
+        $count = 0;
+
+        $letterMap = [
+            'A'  => 1.0,
+            'B'  => 1.5,
+            'C'  => 2.0,
+            'D'  => 3.0,
+            'E'  => 4.0,
+            'FX' => 5.0,
+            'F'  => 5.0,
+        ];
+
+        foreach ($items as $it) {
+            $raw = $it->grade ?? '';
+            $g = trim((string)$raw);
+            if ($g === '') continue;
+
+            $upper = mb_strtoupper($g);
+            if (preg_match('/^([A-Za-z]{1,2})\b/', $upper, $m)) {
+                $tok = $m[1];
+                if ($tok === 'F') $tok = 'FX';
+                if (array_key_exists($tok, $letterMap)) {
+                    $sum += $letterMap[$tok];
+                    $count++;
+                    continue;
+                }
+            }
+
+            if (preg_match('/(-?\d+[.,]?\d*)/', $g, $m)) {
+                $numStr = str_replace(',', '.', $m[1]);
+                if (is_numeric($numStr)) {
+                    $sum += (float)$numStr;
+                    $count++;
+                    continue;
+                }
+            }
+        }
+
+        if ($count === 0) return null;
+        return (float) ($sum / $count);
+    }
+
+    /**
      * Approve an enrollment by id (set status = 'approved'). Returns true if updated, false otherwise.
      * @param int $id
      * @return bool

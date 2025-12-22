@@ -104,6 +104,15 @@ class Course extends Model
 
         if ($name === '') $errors[] = 'Názov kurzu je povinný.';
 
+        // check name uniqueness (case-insensitive)
+        if ($name !== '') {
+            // use LOWER comparison to be case-insensitive (Postgres, MySQL LOWER works too)
+            $existing = static::getAll('LOWER(name) = LOWER(?)', [$name], null, 1);
+            if (!empty($existing)) {
+                $errors[] = 'Kurz s týmto názvom už existuje.';
+            }
+        }
+
         if ($credits !== null && $credits !== '') {
             $creditsInt = (int)$credits;
             if ($creditsInt < 0) $errors[] = 'Kredity musia byť nezáporné číslo.';
@@ -157,7 +166,19 @@ class Course extends Model
             if ($name === '') {
                 $errors[] = 'Názov kurzu je povinný.';
             } else {
-                $this->name = $name;
+                // ensure new name is unique (case-insensitive) excluding this course
+                $conflict = [];
+                if ($this->id !== null) {
+                    $conflict = static::getAll('LOWER(name) = LOWER(?) AND id != ?', [$name, $this->id], null, 1);
+                } else {
+                    // defensive: if this course doesn't have id yet, just check any existing
+                    $conflict = static::getAll('LOWER(name) = LOWER(?)', [$name], null, 1);
+                }
+                if (!empty($conflict)) {
+                    $errors[] = 'Kurz s týmto názvom už existuje.';
+                } else {
+                    $this->name = $name;
+                }
             }
         }
 

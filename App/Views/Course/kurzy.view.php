@@ -4,11 +4,16 @@
 /** @var array $allTeachers */
 /** @var bool $isAdmin */
 /** @var bool $isStudent */
+/** @var array $studentEnrollmentsMap */
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
 
+use App\Models\Student;
+
 $view->setLayout('home');
 $title = 'Kurzy';
+
+
 ?>
 
 <div class="card">
@@ -58,6 +63,16 @@ $title = 'Kurzy';
                                 . 'data-teacher-id="' . htmlspecialchars($course->teacherId ?? $teacherIdForRow) . '" '
                                 . 'data-credits="' . htmlspecialchars($course->credits ?? '') . '" '
                                 . 'data-description="' . htmlspecialchars($course->description ?? '') . '"';
+
+                            // Use precomputed map (courseId => status) passed from controller to determine enrollment state
+                            $alreadyEnrolled = false;
+                            $enrollmentStatus = null;
+                            if (!empty($isStudent) && !empty($studentEnrollmentsMap) && is_array($studentEnrollmentsMap)) {
+                                if (array_key_exists($course->id, $studentEnrollmentsMap)) {
+                                    $alreadyEnrolled = true;
+                                    $enrollmentStatus = $studentEnrollmentsMap[$course->id];
+                                }
+                            }
                         ?>
                         <tr <?= $dataAttrs ?>>
                             <td data-field="name"><span class="value"><?= htmlspecialchars($course->name) ?></span></td>
@@ -76,11 +91,18 @@ $title = 'Kurzy';
                             </td>
                             <?php elseif (!empty($isStudent)): ?>
                             <td class="actions">
-                                <!-- Enroll form - action should point to the student's enroll handler. If you have a route like student.enroll use that. -->
-                                <form action="<?= htmlspecialchars($link->url('student.zapis')) ?>" method="post" class="d-inline">
-                                    <input type="hidden" name="courseId" value="<?= htmlspecialchars($course->id) ?>">
-                                    <button type="submit" class="btn btn-sm btn-primary">Zapísať sa</button>
-                                </form>
+                                <?php if ($alreadyEnrolled): ?>
+                                    <?php if ($enrollmentStatus === 'approved'): ?>
+                                        <button type="button" class="btn btn-sm btn-success" disabled>Zapísaný</button>
+                                    <?php else: ?>
+                                        <button type="button" class="btn btn-sm btn-warning" disabled>Čaká na schválenie</button>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <form action="<?= htmlspecialchars($link->url('student.zapis')) ?>" method="post" class="d-inline">
+                                        <input type="hidden" name="courseId" value="<?= htmlspecialchars($course->id) ?>">
+                                        <button type="submit" class="btn btn-sm btn-primary">Zapísať sa</button>
+                                    </form>
+                                <?php endif; ?>
                             </td>
                             <?php endif; ?>
                         </tr>
@@ -91,4 +113,3 @@ $title = 'Kurzy';
         <?php endif; ?>
     </div>
 </div>
-

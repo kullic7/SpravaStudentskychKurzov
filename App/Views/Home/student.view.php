@@ -54,6 +54,7 @@ $averageGrade = $averageGrade ?? null;
                     <thead>
                         <tr>
                             <th>Názov</th>
+                            <th>Učiteľ</th>
                             <th>Popis</th>
                             <th>Kredity</th>
                             <th>Známka</th>
@@ -62,12 +63,14 @@ $averageGrade = $averageGrade ?? null;
                     <tbody>
                         <?php foreach ($enrollments as $row):
                             $cname = $row['courseName'] ?? '-';
+                            $cteacherName = $row['teacherName'] ?? '-';
                             $cdesc = $row['description'] ?? null; // may be provided by controller
                             $credits = $row['credits'] !== null ? (string)$row['credits'] : null;
                             $grade = $row['grade'] !== null ? (string)$row['grade'] : null;
                         ?>
                         <tr>
                             <td data-col="name"><span class="value"><?= htmlspecialchars($cname) ?></span></td>
+                            <td data-col="teacher"><span class="value"><?= htmlspecialchars($cteacherName) ?></span></td>
                             <td data-col="description"><span class="value"><?= htmlspecialchars($cdesc ?? '-') ?></span></td>
                             <td data-col="credits"><span class="value"><?= $credits !== null ? htmlspecialchars($credits) : '-' ?></span></td>
                             <td data-col="grade"><span class="value"><?= $grade !== null ? htmlspecialchars($grade) : '-' ?></span></td>

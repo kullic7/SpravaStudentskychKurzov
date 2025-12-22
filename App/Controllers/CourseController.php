@@ -7,6 +7,8 @@ use Framework\Http\Request;
 use Framework\Http\Responses\Response;
 use App\Models\Course;
 use App\Models\Teacher;
+use App\Models\Student;
+use App\Models\Enrollment;
 
 class CourseController extends BaseController
 {
@@ -50,6 +52,25 @@ class CourseController extends BaseController
         $isAdmin = ($role === 'admin');
         $isStudent = ($role === 'student');
 
+        // Prepare a map of student's enrollments to avoid DB calls from view
+        $studentEnrollmentsMap = [];
+        if ($isStudent && $appUser && $appUser->getId() !== null) {
+            try {
+                $studentModel = Student::findByUserId((int)$appUser->getId());
+                if ($studentModel !== null && $studentModel->id !== null) {
+                    $ens = Enrollment::getAll('student_id = ?', [$studentModel->id]);
+                    foreach ($ens as $e) {
+                        if ($e->courseId !== null) {
+                            $studentEnrollmentsMap[$e->courseId] = $e->status ?? null;
+                        }
+                    }
+                }
+            } catch (\Throwable $_) {
+                // ignore and leave map empty
+                $studentEnrollmentsMap = [];
+            }
+        }
+
         // The shared view can use these flags to show/hide buttons and actions
         return $this->html([
             'courses' => $courses,
@@ -57,6 +78,7 @@ class CourseController extends BaseController
             'allTeachers' => $allTeachers,
             'isAdmin' => $isAdmin,
             'isStudent' => $isStudent,
+            'studentEnrollmentsMap' => $studentEnrollmentsMap,
         ], 'kurzy');
     }
 }
