@@ -195,7 +195,7 @@ class Enrollment extends Model
      * @param int $studentId
      * @return float|null
      */
-    public static function averageGradeByStudent(int $studentId)
+    public static function averageGradeByStudent(int $studentId): ?float
     {
         // fetch enrollments for student that have a non-empty grade
         $items = static::getAll('student_id = ? AND grade IS NOT NULL AND grade <> ?', [$studentId, '']);
@@ -204,13 +204,13 @@ class Enrollment extends Model
 
         // mapping for letter grades (case-insensitive)
         $letterMap = [
-            'A'  => 1.0,
-            'B'  => 1.5,
-            'C'  => 2.0,
-            'D'  => 3.0,
-            'E'  => 4.0,
+            'A' => 1.0,
+            'B' => 1.5,
+            'C' => 2.0,
+            'D' => 3.0,
+            'E' => 4.0,
             'FX' => 5.0,
-            'F'  => 5.0, // be lenient: treat F as Fx
+            'F' => 5.0, // be lenient: treat F as Fx
         ];
 
         foreach ($items as $it) {
@@ -245,8 +245,12 @@ class Enrollment extends Model
             // otherwise skip (non-numeric, non-mapped grade)
         }
 
-        if ($count === 0) return null;
-        return (float) round($sum / $count, 2);
+        if ($count === 0) {
+            return null;
+        }
+
+        $avg = $sum / $count;
+        return (float) round($avg, 2);
     }
 
     /**
@@ -316,4 +320,53 @@ class Enrollment extends Model
         $en->save();
         return true;
     }
+
+    /**
+     * Update grade for a given enrollment id. Returns an array describing result.
+     * Expected keys: 'success' => bool, 'grade' => ?string, 'message' => string|null, 'errors' => array
+     * @param int $id
+     * @param string|null $grade
+     * @return array
+     */
+    public static function updateZnamky(int $id, ?string $grade): array
+    {
+        $errors = [];
+        if ($id <= 0) {
+            return ['success' => false, 'grade' => null, 'message' => 'Neplatné ID zápisu.', 'errors' => ['Neplatné ID zápisu.']];
+        }
+
+        $en = static::getOne($id);
+        if ($en === null) {
+            return ['success' => false, 'grade' => null, 'message' => 'Zápis nebol nájdený.', 'errors' => ['Zápis nebol nájdený.']];
+        }
+
+        $gradeVal = $grade === null ? null : trim((string)$grade);
+        if ($gradeVal === '') $gradeVal = null;
+
+        // Validation: grade must be either null/empty or a single letter A,B,C,D,E or F (case-insensitive)
+        if ($gradeVal !== null) {
+            $upper = mb_strtoupper($gradeVal);
+            if (!preg_match('/^[A-F]$/', $upper)) {
+                return [
+                    'success' => false,
+                    'grade' => null,
+                    'message' => 'Známka musí byť jedno písmeno: A, B, C, D, E alebo F.',
+                    'errors' => ['Neplatný formát známky.'],
+                ];
+            }
+            // store normalized single uppercase letter
+            $gradeVal = $upper;
+        }
+
+        $en->grade = $gradeVal;
+
+        try {
+            $en->save();
+            return ['success' => true, 'grade' => $gradeVal, 'errors' => []];
+        } catch (\Throwable $e) {
+            $msg = 'Chyba pri ukladaní: ' . $e->getMessage();
+            return ['success' => false, 'grade' => null, 'message' => $msg, 'errors' => [$msg]];
+        }
+    }
+
 }

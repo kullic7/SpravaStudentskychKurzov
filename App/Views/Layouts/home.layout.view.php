@@ -59,7 +59,7 @@
                     <?php endif; ?>
 
                     <?php if ($user && $user->getRole() === 'teacher'): ?>
-                    <li class="nav-item"><a class="nav-link" href="#">Študenti</a></li>
+                        <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('teacher.studenti')) ?>">Študenti</a></li>
                     <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" href="<?= htmlspecialchars($link->url('auth.profile')) ?>">Profil</a>
