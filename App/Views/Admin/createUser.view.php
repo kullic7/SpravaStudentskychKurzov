@@ -74,11 +74,11 @@ function pv(string $key, $default = ''): string
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="studentNumber" class="form-label">Študijné číslo</label>
-                        <input id="studentNumber" name="studentNumber" class="form-control" value="<?= pv('studentNumber') ?>">
+                        <input id="studentNumber" name="studentNumber" pattern="^S\d{4}$" class="form-control" value="<?= pv('studentNumber') ?>">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="year" class="form-label">Ročník</label>
-                        <input id="year" name="year" type="number" min="1" class="form-control" value="<?= pv('year') ?>">
+                        <input id="year" name="year" type="number" min="1" max="4" class="form-control" value="<?= pv('year') ?>">
                     </div>
                 </div>
             </div>
@@ -86,13 +86,13 @@ function pv(string $key, $default = ''): string
             <div id="teacherFields" style="display:none;">
                 <div class="mb-3">
                     <label for="department" class="form-label">Oddelenie</label>
-                    <input id="department" name="department" class="form-control" value="<?= pv('department') ?>">
+                    <input id="department" name="department" class="form-control" value="<?= pv('department') ?>" >
                 </div>
             </div>
 
             <div class="d-flex justify-content-between">
                 <a class="btn btn-outline-secondary" href="<?= htmlspecialchars($link->url('admin.pouzivatelia')) ?>">Späť</a>
-                <button class="btn btn-primary">Vytvoriť</button>
+                <button type="submit" class="btn btn-primary">Vytvoriť</button>
             </div>
         </form>
     </div>

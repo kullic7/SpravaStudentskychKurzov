@@ -57,7 +57,6 @@ class User extends Model
         return $this->firstName . ' ' . $this->lastName;
     }
     // -------------------- convenience helpers --------------------
-
     /**
      * Find user by primary id (wrapper around Model::getOne)
      * @param int $id
@@ -87,6 +86,88 @@ class User extends Model
         $items = static::getAll('email = ?', [$email], null, 1);
         return $items[0] ?? null;
     }
+    /**
+     * Validate a name (first name or last name).
+     * Accepts null/empty and returns appropriate error(s).
+     * @param string|null $value
+     * @param string $fieldName
+     * @return string[] array of error messages
+     */
+    protected static function validateName(?string $value, string $fieldName): array
+    {
+        $errors = [];
+        $val = $value === null ? '' : trim((string)$value);
+        if ($val === '') {
+            $errors[] = $fieldName . ' je povinné.';
+            return $errors;
+        }
+        if (mb_strlen($val) > 20) {
+            $errors[] = $fieldName . ' môže mať maximálne 20 znakov.';
+        }
+        // allow Unicode letters and digits only
+        if (!preg_match('/^[\p{L}\p{N}]+$/u', $val)) {
+            $errors[] = $fieldName . ' môže obsahovať len písmená a čísla.';
+        }
+        return $errors;
+    }
+
+    /**
+     * Validate email and uniqueness. Returns array of error messages.
+     * @param string|null $email
+     * @param int|null $currentUserId when provided, allow that user to keep the same email
+     * @return string[]
+     */
+    protected static function validateEmail(?string $email, ?int $currentUserId = null): array
+    {
+        $errors = [];
+        $val = $email === null ? '' : trim((string)$email);
+        if ($val === '') {
+            $errors[] = 'Email je povinný.';
+            return $errors;
+        }
+        if (strlen($val) > 30) {
+            $errors[] = 'Email je príliš dlhý';
+        }
+        if (!filter_var($val, FILTER_VALIDATE_EMAIL)) {
+            $errors[] = 'Email má nesprávny formát.';
+            return $errors;
+        }
+        $existing = static::findByEmail($val);
+        if ($existing !== null && ($currentUserId === null || $existing->id !== $currentUserId)) {
+            $errors[] = 'Používateľ s týmto emailom už existuje.';
+        }
+        return $errors;
+    }
+
+    /**
+     * Validate password and confirm. If $required=true then password must be present.
+     * @param string|null $password
+     * @param string|null $confirm
+     * @param bool $required
+     * @return string[]
+     */
+    protected static function validatePassword(?string $password, ?string $confirm, bool $required = false): array
+    {
+        $errors = [];
+        $pw = $password === null ? '' : (string)$password;
+        $pwConf = $confirm === null ? '' : (string)$confirm;
+
+        if ($required && $pw === '') {
+            $errors[] = 'Heslo je povinné.';
+            return $errors;
+        }
+
+        if ($pw !== '') {
+            if ($pw !== $pwConf) {
+                $errors[] = 'Heslá sa nezhodujú.';
+            }
+            if (mb_strlen($pw) < 6) {
+                $errors[] = 'Heslo musí mať aspoň 6 znakov.';
+            }
+        }
+
+        return $errors;
+    }
 
     /**
      * Update profile fields from an associative array and save. Returns array of errors (empty on success).
@@ -104,22 +185,15 @@ class User extends Model
         $password = $data['password'] ?? null;
         $passwordConfirm = $data['passwordConfirm'] ?? null;
 
-        if ($email === null || $email === '') {
-            $errors[] = 'Email je povinný.';
-        }
-        if ($firstName === null || $firstName === '') {
-            $errors[] = 'Meno je povinné.';
-        }
-        if ($lastName === null || $lastName === '') {
-            $errors[] = 'Priezvisko je povinné.';
-        }
+        // validate name(s)
+        $errors = array_merge($errors, static::validateName($firstName, 'Meno'));
+        $errors = array_merge($errors, static::validateName($lastName, 'Priezvisko'));
 
-        if ($password !== null && $password !== '') {
-            if ($password !== $passwordConfirm) {
-                $errors[] = 'Heslá sa nezhodujú.';
-            }
-        }
+        // validate email (allow keeping current email)
+        $errors = array_merge($errors, static::validateEmail($email, $this->id ?? null));
 
+        // validate password only if provided
+        $errors = array_merge($errors, static::validatePassword($password, $passwordConfirm, false));
 
         if (!empty($errors)) {
             return $errors;
@@ -158,16 +232,15 @@ class User extends Model
         $passwordConfirm = $data['passwordConfirm'] ?? null;
         $role = isset($data['role']) ? trim((string)$data['role']) : 'student';
 
-        if ($email === '') $errors[] = 'Email je povinný.';
-        if ($firstName === '') $errors[] = 'Meno je povinné.';
-        if ($lastName === '') $errors[] = 'Priezvisko je povinné.';
-        if ($password === null || $password === '') $errors[] = 'Heslo je povinné.';
-        if ($password !== $passwordConfirm) $errors[] = 'Heslá sa nezhodujú.';
+        // validate names
+        $errors = array_merge($errors, static::validateName($firstName, 'Meno'));
+        $errors = array_merge($errors, static::validateName($lastName, 'Priezvisko'));
 
-        // email uniqueness
-        if ($email !== '' && static::findByEmail($email) !== null) {
-            $errors[] = 'Používateľ s týmto emailom už existuje.';
-        }
+        // validate email (for create, no current user id)
+        $errors = array_merge($errors, static::validateEmail($email, null));
+
+        // password required on create
+        $errors = array_merge($errors, static::validatePassword($password, $passwordConfirm, true));
 
         if (!empty($errors)) {
             return ['user' => null, 'errors' => $errors];

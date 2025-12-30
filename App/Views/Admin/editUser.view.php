@@ -53,19 +53,19 @@ $teacherData = $teacherData ?? [];
             <?php if ($student !== null || ($userModel->role ?? '') === 'student'): ?>
                 <div class="mb-3">
                     <label class="form-label" for="studentNumber">Študijné číslo</label>
-                    <input id="studentNumber" type="text" name="studentNumber" class="form-control" value="<?= htmlspecialchars($studentData['studentNumber'] ?? ($student->studentNumber ?? '')) ?>"  >
+                    <input id="studentNumber" type="text" name="studentNumber" class="form-control" value="<?= htmlspecialchars($studentData['studentNumber'] ?? ($student->studentNumber ?? '')) ?>" required >
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label" for="year">Ročník</label>
-                    <input id="year" type="number" name="year" min="1" max="5" class="form-control" value="<?= htmlspecialchars($studentData['year'] ?? ($student->year ?? '')) ?>" >
+                    <input id="year" type="number" name="year" min="1" max="5" class="form-control" value="<?= htmlspecialchars($studentData['year'] ?? ($student->year ?? '')) ?>" required>
                 </div>
             <?php endif; ?>
 
             <?php if ($teacher !== null || ($userModel->role ?? '') === 'teacher'): ?>
                 <div class="mb-3">
                     <label class="form-label" for="department">Oddelenie</label>
-                    <input id="department" type="text" name="department" class="form-control" value="<?= htmlspecialchars($teacherData['department'] ?? ($teacher->department ?? '')) ?>"  >
+                    <input id="department" type="text" name="department" class="form-control" value="<?= htmlspecialchars($teacherData['department'] ?? ($teacher->department ?? '')) ?>"  required>
                 </div>
             <?php endif; ?>
 

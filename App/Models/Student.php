@@ -56,6 +56,7 @@ class Student extends Model
 
     /**
     // ---------------- convenience wrappers ----------------
+    */
 
     /**
      * Wrapper for retrieving all students.
@@ -101,16 +102,45 @@ class Student extends Model
         $studentNumber = isset($data['studentNumber']) ? trim((string)$data['studentNumber']) : null;
         $year = $data['year'] ?? null;
 
+        // Validate and set student number if provided (empty string => null)
         if ($studentNumber !== null) {
-            $this->studentNumber = $studentNumber === '' ? null : $studentNumber;
+            $sn = $studentNumber === '' ? null : strtoupper($studentNumber);
+
+            if ($sn !== null) {
+                // must match format S1234 (S + 4 digits)
+                if (!preg_match('/^S\d{4}$/', $sn)) {
+                    $errors[] = "Študijné číslo musí mať formát 'S1234' (S následované 4 číslicami).";
+                } else {
+                    // uniqueness check: exclude current record when updating
+                    if ($this->id !== null) {
+                        $exists = static::getCount('student_number = ? AND id != ?', [$sn, $this->id]);
+                    } else {
+                        $exists = static::getCount('student_number = ?', [$sn]);
+                    }
+                    if ($exists > 0) {
+                        $errors[] = 'Toto študijné číslo už používa iný študent.';
+                    } else {
+                        $this->studentNumber = $sn;
+                    }
+                }
+            } else {
+                $this->studentNumber = null;
+            }
         }
 
+        // Year handling
         if ($year !== null && $year !== '') {
-            $yearInt = (int)$year;
-            if ($yearInt < 1) {
-                $errors[] = 'Ročník musí byť kladné číslo.';
+            // ensure year is numeric (digits only)
+            $yearStr = (string)$year;
+            if (!preg_match('/^\d+$/', $yearStr)) {
+                $errors[] = 'Ročník musí byť číslo.';
             } else {
-                $this->year = $yearInt;
+                $yearInt = (int)$yearStr;
+                if ($yearInt < 1) {
+                    $errors[] = 'Ročník musí byť kladné číslo.';
+                } else {
+                    $this->year = $yearInt;
+                }
             }
         } else {
             $this->year = null;

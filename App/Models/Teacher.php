@@ -95,7 +95,23 @@ class Teacher extends Model
         $department = isset($data['department']) ? trim((string)$data['department']) : null;
 
         if ($department !== null) {
-            $this->department = $department === '' ? null : $department;
+            $dep = $department === '' ? null : $department;
+            if ($dep !== null) {
+                // length must be less than 255 characters
+                if (mb_strlen($dep) >= 255) {
+                    $errors[] = 'Oddelenie musí byť kratšie ako 255 znakov.';
+                }
+                // allow only letters (Unicode) and hyphen
+                if (!preg_match('/^[\p{L}-]+$/u', $dep)) {
+                    $errors[] = 'Oddelenie môže obsahovať len písmená a pomlčku.';
+                }
+                // set value only if no related errors
+                if (empty($errors)) {
+                    $this->department = $dep;
+                }
+            } else {
+                $this->department = null;
+            }
         }
 
         if (!empty($errors)) {
