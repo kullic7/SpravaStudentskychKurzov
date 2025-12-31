@@ -14,8 +14,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // validate input
             const value = input.value.trim().toUpperCase();
-            if (value !== '' && !/^(A|B|C|D|E|F)$/.test(value)) {
-                errorEl.textContent = 'Neplatná známka (povolené: A–F)';
+            if (value !== '' && !/^(A|B|C|D|E|FX)$/.test(value)) {
+                errorEl.textContent = 'Neplatná známka: Známka musí byť A, B, C, D, E alebo Fx.';
                 errorEl.style.display = 'inline';
                 return;
             }

@@ -79,7 +79,7 @@ $title = 'Kurzy';
                             <td data-field="teacher"><span class="value"><?= htmlspecialchars($teacherNames) ?></span></td>
                             <td data-field="teacherEmail"><span class="value"><?= htmlspecialchars($teacherEmails) ?></span></td>
                             <td data-field="credits"><span class="value"><?= htmlspecialchars($course->credits) ?></span></td>
-                            <td data-field="description"><span class="value"><?= htmlspecialchars($course->description) ?></span></td>
+                            <td data-field="description"><span class="value"><?= htmlspecialchars($course->description ?? '') ?></span></td>
 
                             <?php if (!empty($isAdmin)): ?>
                             <td class="actions">

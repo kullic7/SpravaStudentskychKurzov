@@ -104,9 +104,9 @@ class User extends Model
         if (mb_strlen($val) > 20) {
             $errors[] = $fieldName . ' môže mať maximálne 20 znakov.';
         }
-        // allow Unicode letters and digits only
-        if (!preg_match('/^[\p{L}\p{N}]+$/u', $val)) {
-            $errors[] = $fieldName . ' môže obsahovať len písmená a čísla.';
+        // allow Unicode letters only
+        if (!preg_match('/^[\p{L}]+$/u', $val)) {
+            $errors[] = $fieldName . ' môže obsahovať len písmená.';
         }
         return $errors;
     }

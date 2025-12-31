@@ -27,17 +27,18 @@ $title = 'Vytvoriť kurz';
         <form method="post" action="<?= htmlspecialchars($link->url('admin.createCoursePost')) ?>">
             <div class="mb-3">
                 <label for="name" class="form-label">Názov</label>
-                <input id="name" name="name" type="text" class="form-control" value="<?= htmlspecialchars($posted['name'] ?? '') ?>" required>
+                <input id="name" name="name" type="text" class="form-control" value="<?= htmlspecialchars($posted['name'] ?? '') ?>" required pattern="^[A-Za-z0-9 ]+$"
+                       title="Názov môže obsahovať len písmená, čísla a medzery">
             </div>
 
             <div class="mb-3">
                 <label for="description" class="form-label">Popis</label>
-                <textarea id="description" name="description" class="form-control"><?= htmlspecialchars($posted['description'] ?? '') ?></textarea>
+                <textarea id="description" name="description" class="form-control" required><?= htmlspecialchars($posted['description'] ?? '') ?></textarea>
             </div>
 
             <div class="mb-3">
                 <label for="credits" class="form-label">Kredity</label>
-                <input id="credits" name="credits" type="number" min="0" class="form-control" value="<?= htmlspecialchars($posted['credits'] ?? '') ?>">
+                <input id="credits" name="credits" type="number" min="1" max="6" class="form-control" value="<?= htmlspecialchars($posted['credits'] ?? '') ?>" required>
             </div>
 
             <div class="mb-3">

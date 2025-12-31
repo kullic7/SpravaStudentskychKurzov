@@ -46,7 +46,7 @@ function val($posted, $course, $key, $prop = null) {
 
             <div class="mb-3">
                 <label for="credits" class="form-label">Kredity</label>
-                <input id="credits" name="credits" type="number" min="0" class="form-control" value="<?= htmlspecialchars(val($posted ?? [], $course ?? null, 'credits')) ?>">
+                <input id="credits" name="credits" type="number" min="1" max="6" class="form-control" value="<?= htmlspecialchars(val($posted ?? [], $course ?? null, 'credits')) ?>">
             </div>
 
             <div class="mb-3">

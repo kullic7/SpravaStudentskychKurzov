@@ -86,57 +86,99 @@ class Course extends Model
     }
 
     /**
-     * Create a new course from provided data. Returns array with keys:
-     * - 'course' => created Course instance or null on failure
-     * - 'errors' => array of validation error messages
-     * Expected keys in $data: name, description, credits, teacherId
+     * Validate and normalize course input data.
+     *
      * @param array $data
-     * @return array{course:?static, errors:array}
+     * @param int|null $currentId  ID kurzu pri update (null pri create)
+     * @return array{values: array, errors: string[]}
      */
-    public static function create(array $data): array
+    protected static function validateData(array $data, ?int $currentId = null): array
     {
         $errors = [];
+        $values = [];
 
-        $name = isset($data['name']) ? trim((string)$data['name']) : '';
-        $description = isset($data['description']) ? trim((string)$data['description']) : null;
-        $credits = $data['credits'] ?? null;
-        $teacherId = $data['teacherId'] ?? null;
+        // ---- name ----
+        if (array_key_exists('name', $data)) {
+            $name = trim((string)$data['name']);
 
-        if ($name === '') $errors[] = 'Názov kurzu je povinný.';
+            if ($name === '') {
+                $errors[] = 'Názov kurzu je povinný.';
+            }
+            // max length
+            elseif (mb_strlen($name) > 50) {
+                $errors[] = 'Názov kurzu môže mať maximálne 50 znakov.';
+            }
+            // only letters and numbers (unicode safe)
+            elseif (!preg_match('/^[\p{L}\p{N} ]+$/u', $name)) {
+                $errors[] = 'Názov kurzu môže obsahovať len písmená, čísla.';
+            }
+            else {
+                $params = [$name];
+                $sql = 'LOWER(name) = LOWER(?)';
 
-        // check name uniqueness (case-insensitive)
-        if ($name !== '') {
-            // use LOWER comparison to be case-insensitive (Postgres, MySQL LOWER works too)
-            $existing = static::getAll('LOWER(name) = LOWER(?)', [$name], null, 1);
-            if (!empty($existing)) {
-                $errors[] = 'Kurz s týmto názvom už existuje.';
+                if ($currentId !== null) {
+                    $sql .= ' AND id != ?';
+                    $params[] = $currentId;
+                }
+
+                if (!empty(static::getAll($sql, $params, null, 1))) {
+                    $errors[] = 'Kurz s týmto názvom už existuje.';
+                } else {
+                    $values['name'] = $name;
+                }
             }
         }
 
-        if ($credits !== null && $credits !== '') {
-            $creditsInt = (int)$credits;
-            if ($creditsInt < 0) $errors[] = 'Kredity musia byť nezáporné číslo.';
-        } else {
-            $creditsInt = null;
+        // ---- description ----
+        if (array_key_exists('description', $data)) {
+            $desc = trim((string)$data['description']);
+            $values['description'] = $desc === '' ? null : $desc;
         }
 
-        $teacherIdInt = null;
-        if ($teacherId !== null && $teacherId !== '') {
-            $teacherIdInt = (int)$teacherId;
-            if (Teacher::findById($teacherIdInt) === null) {
-                $errors[] = 'Vybraný učiteľ neexistuje.';
+        // ---- credits ----
+        if (array_key_exists('credits', $data)) {
+            if ($data['credits'] === '' || $data['credits'] === null) {
+                $values['credits'] = null;
+            } else {
+                $credits = (int)$data['credits'];
+                if ($credits < 0) {
+                    $errors[] = 'Kredity musia byť nezáporné číslo.';
+                } else {
+                    $values['credits'] = $credits;
+                }
             }
         }
 
-        if (!empty($errors)) {
-            return ['course' => null, 'errors' => $errors];
+        // ---- teacher ----
+        if (array_key_exists('teacherId', $data)) {
+            if ($data['teacherId'] === '' || $data['teacherId'] === null) {
+                $values['teacherId'] = null;
+            } else {
+                $tid = (int)$data['teacherId'];
+                if (Teacher::findById($tid) === null) {
+                    $errors[] = 'Vybraný učiteľ neexistuje.';
+                } else {
+                    $values['teacherId'] = $tid;
+                }
+            }
+        }
+
+        return ['values' => $values, 'errors' => $errors];
+    }
+
+    public static function create(array $data): array
+    {
+        $result = static::validateData($data, null);
+
+        if (!empty($result['errors'])) {
+            return ['course' => null, 'errors' => $result['errors']];
         }
 
         $course = new static();
-        $course->name = $name;
-        $course->description = $description === '' ? null : $description;
-        $course->credits = $creditsInt === null ? null : $creditsInt;
-        $course->teacherId = $teacherIdInt;
+
+        foreach ($result['values'] as $key => $value) {
+            $course->$key = $value;
+        }
 
         try {
             $course->save();
@@ -146,71 +188,17 @@ class Course extends Model
         }
     }
 
-    /**
-     * Update course fields from provided data and save.
-     * Expected keys: 'name', 'description', 'credits', 'teacherId'
-     * Returns array of errors (empty on success).
-     * @param array $data
-     * @return array<string>
-     */
     public function update(array $data): array
     {
-        $errors = [];
+        $result = static::validateData($data, $this->id);
 
-        $name = isset($data['name']) ? trim((string)$data['name']) : null;
-        $description = array_key_exists('description', $data) ? trim((string)$data['description']) : null;
-        $credits = $data['credits'] ?? null;
-        $teacherId = $data['teacherId'] ?? null;
-
-        if ($name !== null) {
-            if ($name === '') {
-                $errors[] = 'Názov kurzu je povinný.';
-            } else {
-                // ensure new name is unique (case-insensitive) excluding this course
-                $conflict = [];
-                if ($this->id !== null) {
-                    $conflict = static::getAll('LOWER(name) = LOWER(?) AND id != ?', [$name, $this->id], null, 1);
-                } else {
-                    // defensive: if this course doesn't have id yet, just check any existing
-                    $conflict = static::getAll('LOWER(name) = LOWER(?)', [$name], null, 1);
-                }
-                if (!empty($conflict)) {
-                    $errors[] = 'Kurz s týmto názvom už existuje.';
-                } else {
-                    $this->name = $name;
-                }
-            }
+        if (!empty($result['errors'])) {
+            return $result['errors'];
         }
 
-        if ($description !== null) {
-            $this->description = $description === '' ? null : $description;
+        foreach ($result['values'] as $key => $value) {
+            $this->$key = $value;
         }
-
-        if ($credits !== null && $credits !== '') {
-            $creditsInt = (int)$credits;
-            if ($creditsInt < 0) {
-                $errors[] = 'Kredity musia byť nezáporné číslo.';
-            } else {
-                $this->credits = $creditsInt;
-            }
-        }
-
-        // Allow explicitly clearing the teacher: detect whether caller provided the 'teacherId' key.
-        if (array_key_exists('teacherId', $data)) {
-            // if empty string or null -> clear teacher
-            if ($teacherId === null || $teacherId === '') {
-                $this->teacherId = null;
-            } else {
-                $teacherIdInt = (int)$teacherId;
-                if (Teacher::findById($teacherIdInt) === null) {
-                    $errors[] = 'Vybraný učiteľ neexistuje.';
-                } else {
-                    $this->teacherId = $teacherIdInt;
-                }
-            }
-        }
-
-        if (!empty($errors)) return $errors;
 
         $this->save();
         return [];

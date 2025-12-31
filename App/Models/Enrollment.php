@@ -322,51 +322,93 @@ class Enrollment extends Model
     }
 
     /**
-     * Update grade for a given enrollment id. Returns an array describing result.
-     * Expected keys: 'success' => bool, 'grade' => ?string, 'message' => string|null, 'errors' => array
+     * Validate enrollment grade update input.
+     *
      * @param int $id
      * @param string|null $grade
-     * @return array
+     * @return array{enrollment:?static, grade:?string, errors:string[], message:?string}
      */
-    public static function updateZnamky(int $id, ?string $grade): array
+    protected static function validateGrade(int $id, ?string $grade): array
     {
-        $errors = [];
         if ($id <= 0) {
-            return ['success' => false, 'grade' => null, 'message' => 'Neplatné ID zápisu.', 'errors' => ['Neplatné ID zápisu.']];
+            return [
+                'enrollment' => null,
+                'grade' => null,
+                'message' => 'Neplatné ID zápisu.',
+                'errors' => ['Neplatné ID zápisu.'],
+            ];
         }
 
         $en = static::getOne($id);
         if ($en === null) {
-            return ['success' => false, 'grade' => null, 'message' => 'Zápis nebol nájdený.', 'errors' => ['Zápis nebol nájdený.']];
+            return [
+                'enrollment' => null,
+                'grade' => null,
+                'message' => 'Zápis nebol nájdený.',
+                'errors' => ['Zápis nebol nájdený.'],
+            ];
         }
 
         $gradeVal = $grade === null ? null : trim((string)$grade);
-        if ($gradeVal === '') $gradeVal = null;
+        if ($gradeVal === '') {
+            $gradeVal = null;
+        }
 
-        // Validation: grade must be either null/empty or a single letter A,B,C,D,E or F (case-insensitive)
         if ($gradeVal !== null) {
             $upper = mb_strtoupper($gradeVal);
-            if (!preg_match('/^[A-F]$/', $upper)) {
+            if (!preg_match('/^(?:[A-E]|FX)$/', $upper)) {
                 return [
-                    'success' => false,
+                    'enrollment' => null,
                     'grade' => null,
-                    'message' => 'Známka musí byť jedno písmeno: A, B, C, D, E alebo F.',
+                    'message' => 'Známka musí byť A, B, C, D, E alebo Fx.',
                     'errors' => ['Neplatný formát známky.'],
                 ];
             }
-            // store normalized single uppercase letter
-            $gradeVal = $upper;
+            $gradeVal = $upper; // normalizácia
         }
 
-        $en->grade = $gradeVal;
+        return [
+            'enrollment' => $en,
+            'grade' => $gradeVal,
+            'message' => null,
+            'errors' => [],
+        ];
+    }
+
+
+    public static function updateZnamky(int $id, ?string $grade): array
+    {
+        $result = static::validateGrade($id, $grade);
+
+        if (!empty($result['errors'])) {
+            return [
+                'success' => false,
+                'grade' => null,
+                'message' => $result['message'],
+                'errors' => $result['errors'],
+            ];
+        }
+
+        $en = $result['enrollment'];
+        $en->grade = $result['grade'];
 
         try {
             $en->save();
-            return ['success' => true, 'grade' => $gradeVal, 'errors' => []];
+            return [
+                'success' => true,
+                'grade' => $result['grade'],
+                'errors' => [],
+            ];
         } catch (\Throwable $e) {
             $msg = 'Chyba pri ukladaní: ' . $e->getMessage();
-            return ['success' => false, 'grade' => null, 'message' => $msg, 'errors' => [$msg]];
+            return [
+                'success' => false,
+                'grade' => null,
+                'message' => $msg,
+                'errors' => [$msg],
+            ];
         }
     }
+
 
 }
