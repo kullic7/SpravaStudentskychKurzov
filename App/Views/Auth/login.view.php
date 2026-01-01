@@ -5,7 +5,7 @@
 
 $view->setLayout('auth');
 ?>
-<form method="post" action="?c=auth&a=login">
+<form action="<?= htmlspecialchars($link->url('auth.login')) ?>" method="post">
     <div class="auth-content">
 
         <h2 class="text-center mb-4 fw-semibold">Prihlásenie</h2>
