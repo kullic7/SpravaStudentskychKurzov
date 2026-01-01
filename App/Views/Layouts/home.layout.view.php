@@ -12,6 +12,7 @@
 
     <link rel="stylesheet" href="/css/logoStyle.css?x=123">
     <link rel="stylesheet" href="/css/mainBackgroundStyle.css?x=123">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -30,9 +31,6 @@
                      class="login-logo"
                      >
             </a>
-
-
-
             <!-- HAMBURGER -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
                 <span class="navbar-toggler-icon"></span>
@@ -54,7 +52,6 @@
                     <?php endif; ?>
 
                     <?php if ($user && $user->getRole() === 'student'): ?>
-                    <li class="nav-item"><a class="nav-link" href="#">Známky</a></li>
                     <li class="nav-item"><a class="nav-link" href="<?= htmlspecialchars($link->url('enrollment.zapisy')) ?>">Zápisy</a></li>
                     <?php endif; ?>
 

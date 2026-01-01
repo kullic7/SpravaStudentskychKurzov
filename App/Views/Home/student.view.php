@@ -19,7 +19,7 @@ $averageGrade = $averageGrade ?? null;
 
 <div  class="row justify-content-center mt-5">
     <div class="col-md-3 col-sm-6 mb-3">
-        <div class="border p-4 text-center">
+        <div class="rounded p-4 text-center">
             <div class="card-body">
                 <h5 class="card-title">Počet predmetov</h5>
                 <p class="card-text display-6"><?= htmlspecialchars((string)$totalCourses) ?></p>
@@ -27,7 +27,7 @@ $averageGrade = $averageGrade ?? null;
         </div>
     </div>
     <div class="col-md-3 col-sm-6 mb-3">
-        <div class="border p-4 text-center">
+        <div class="rounded p-4 text-center">
             <div class="card-body">
                 <h5 class="card-title">Čakajúce zápisy</h5>
                 <p class="card-text display-6"><?= htmlspecialchars((string)$pendingEnrollments) ?></p>
@@ -35,7 +35,7 @@ $averageGrade = $averageGrade ?? null;
         </div>
     </div>
     <div class="col-md-3 col-sm-6 mb-3">
-        <div class="border p-4 text-center">
+        <div class="rounded p-4 text-center">
             <div class="card-body">
                 <h5 class="card-title">Priemerná známka</h5>
                 <p class="card-text display-6"><?= $averageGrade === null ? '-' : htmlspecialchars(number_format((float)$averageGrade, 2)) ?></p>
@@ -44,8 +44,8 @@ $averageGrade = $averageGrade ?? null;
     </div>
 </div>
 
-<div class="row mt-5">
-    <div class="col-12">
+<div class="card">
+    <div class="card-body">
         <?php if (empty($enrollments) || !is_array($enrollments)): ?>
             <p>Nie sú nájdené žiadne zapisné predmety.</p>
         <?php else: ?>

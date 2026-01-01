@@ -16,17 +16,18 @@ $teacherCourses = $teacherCourses ?? [];
     <h1>Vitajte, <?= htmlspecialchars($user->getName() ?? 'Hosť') ?></h1>
 </div>
 
-<div  class="row justify-content-center mt-5">
+<div class="row justify-content-center mt-5">
     <div class="col-md-4 col-sm-6 mb-3">
-        <div class="border p-4 text-center">
+        <div class="rounded p-4 text-center">
             <div class="card-body">
                 <h5 class="card-title">Počet mojich kurzov</h5>
                 <p class="card-text display-6"><?= htmlspecialchars((string)$totalCourses) ?></p>
             </div>
         </div>
     </div>
+
     <div class="col-md-4 col-sm-6 mb-3">
-        <div class="border p-4 text-center">
+        <div class="rounded p-4 text-center">
             <div class="card-body">
                 <h5 class="card-title">Počet študentov (schválené)</h5>
                 <p class="card-text display-6"><?= htmlspecialchars((string)$studentsCount) ?></p>
@@ -35,13 +36,13 @@ $teacherCourses = $teacherCourses ?? [];
     </div>
 </div>
 
-<div class="row mt-5">
-    <div class="col-12">
+<div class="card">
+    <div class="card-body">
         <?php if (empty($teacherCourses) || !is_array($teacherCourses)): ?>
             <p>Nie sú nájdené žiadne kurzy, ktoré by ste vyučovali.</p>
         <?php else: ?>
             <div class="table-responsive">
-                <table class="table table-striped" id="teacherCoursesTable">
+                <table class="table">
                     <thead>
                         <tr>
                             <th>Názov kurzu</th>
