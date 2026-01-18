@@ -32,7 +32,6 @@ $title = 'Študenti';
                             $student = $entry['student'] ?? null;
                             $user = $entry['user'] ?? null;
                             $courses = $entry['courses'] ?? [];
-
                             $firstName = $user?->firstName ?? '-';
                             $lastName = $user?->lastName ?? '-';
                             $email = $user?->email ?? '-';

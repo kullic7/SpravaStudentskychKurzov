@@ -8,12 +8,8 @@
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
 
-use App\Models\Student;
-
 $view->setLayout('home');
 $title = 'Kurzy';
-
-
 ?>
 
 <div class="card">
@@ -42,17 +38,13 @@ $title = 'Kurzy';
                     <tbody>
                         <?php foreach ($courses as $course):
                             $teacher = $courseTeachers[$course->id] ?? null;
-
                             $teacherNames = '-';
                             $teacherEmails = '-';
-
                             if ($teacher) {
                                 $teacherNames = $teacher->name ?? '-';
                                 $teacherEmails = $teacher->email ?? '-';
                             }
 
-
-                            // Use precomputed map (courseId => status) passed from controller to determine enrollment state
                             $alreadyEnrolled = false;
                             $enrollmentStatus = null;
                             if (!empty($isStudent) && !empty($studentEnrollmentsMap) && is_array($studentEnrollmentsMap)) {

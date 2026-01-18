@@ -24,8 +24,8 @@ class EnrollmentController extends BaseController
         }
 
         $role = $user->getRole();
-        $enrollments = [];
 
+        // 1️⃣ načítanie zápisov podľa roly
         switch ($role) {
             case 'admin':
                 $enrollments = Enrollment::getPendingEnrollments();
@@ -39,10 +39,29 @@ class EnrollmentController extends BaseController
                 $enrollments = [];
         }
 
+        $rows = [];
+
+        foreach ($enrollments as $en) {
+            $student = $en->getStudent();
+            $studentUser = $student ? $student->getUser() : null;
+            $course = $en->getCourse();
+
+            $rows[] = [
+                'id' => $en->id,
+                'studentName' => $studentUser
+                    ? trim(($studentUser->firstName ?? '') . ' ' . ($studentUser->lastName ?? ''))
+                    : '-',
+                'studentEmail' => $studentUser->email ?? '-',
+                'courseName' => $course->name ?? '-',
+                'status' => $en->status,
+            ];
+        }
         return $this->html([
-            'enrollments' => $enrollments
-        ]);
+            'rows' => $rows,
+            'user' => $user,
+        ], 'zapisy');
     }
+
 
     private function getStudentPendingEnrollments($user): array
     {

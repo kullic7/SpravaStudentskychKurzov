@@ -4,7 +4,6 @@
 // Set the layout to the main root layout
 $view->setLayout('home');
 
-// Use stats passed by controller, fallback to defaults
 $totalCourses = $totalCourses ?? 0;
 $pendingEnrollments = $pendingEnrollments ?? 0;
 $averageGrade = $averageGrade ?? null;
@@ -14,8 +13,6 @@ $averageGrade = $averageGrade ?? null;
 <div class="mt-5 pt-4 text-center">
         <h1>Vitajte, <?= htmlspecialchars($user->getName() ?? 'Hosť') ?></h1>
 </div>
-
-
 
 <div  class="row justify-content-center mt-5">
     <div class="col-md-3 col-sm-6 mb-3">
