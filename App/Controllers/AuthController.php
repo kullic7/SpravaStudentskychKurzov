@@ -37,7 +37,6 @@ class AuthController extends BaseController
 
     }
 
-    // ODHLÁSENIE AKTUÁLNEHO UŽÍVATEĽA
     public function logout(Request $request): Response
     {
         $auth = $this->app->getAuthenticator();
@@ -117,23 +116,7 @@ class AuthController extends BaseController
             return $this->html(['userModel' => $user, 'errors' => $errors], 'profile');
         }
 
-        // Update session identity so the logged-user info reflects changes immediately
-        try {
-            $newIdentity = new LoggedUser(
-                $user->id,
-                $user->email ?? '',
-                $user->firstName ?? '',
-                $user->lastName ?? '',
-                $user->role ?? ''
-            );
-            // Session key used by SessionAuthenticator
-            $this->app->getSession()->set('fw.session.user.identity', $newIdentity);
-
-            // Refresh the controller's user instance so templates rendered in this request see the change
-            $this->user = $this->app->getAppUser();
-        } catch (\Throwable $e) {
-            // ignore session update failures - the DB was still updated
-        }
+        $this->refreshSessionIdentity($user);
 
         // After save, respond according to request type
         if ($request->isAjax()) {
@@ -153,4 +136,26 @@ class AuthController extends BaseController
         return $this->redirect($this->url('auth.profile'));
     }
 
+    //helper metod
+    private function refreshSessionIdentity(UserModel $user): void
+    {
+        try {
+            $identity = new LoggedUser(
+                $user->id,
+                $user->email ?? '',
+                $user->firstName ?? '',
+                $user->lastName ?? '',
+                $user->role ?? ''
+            );
+
+            $this->app->getSession()->set(
+                'fw.session.user.identity',
+                $identity
+            );
+
+            $this->user = $this->app->getAppUser();
+        } catch (\Throwable $_) {
+            // ignore
+        }
+    }
 }

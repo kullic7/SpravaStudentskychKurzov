@@ -143,6 +143,17 @@ class Enrollment extends Model
         return static::getCount($where, $params);
     }
 
+    public static function getPendingByStudentId(int $studentId): array
+    {
+        $statuses = $statuses ?? ['not_approved', 'not approved', 'not aproved', 'pending'];
+
+        $placeholders = implode(', ', array_fill(0, count($statuses), '?'));
+        $where = "student_id = ? AND status IN ($placeholders)";
+        $params = array_merge([$studentId], $statuses);
+
+        return self::getAll($where, $params);
+    }
+
     /**
      * Create a new enrollment for a student and course.
      * Returns ['enrollment' => Enrollment|null, 'errors' => array].

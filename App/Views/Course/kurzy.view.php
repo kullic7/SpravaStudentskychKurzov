@@ -41,28 +41,16 @@ $title = 'Kurzy';
                     </thead>
                     <tbody>
                         <?php foreach ($courses as $course):
-                            $teachers = $courseTeachers[$course->id] ?? [];
+                            $teacher = $courseTeachers[$course->id] ?? null;
 
                             $teacherNames = '-';
                             $teacherEmails = '-';
-                            $teacherIdForRow = '';
 
-                            if (!empty($teachers)) {
-                                $names = [];
-                                $emails = [];
-                                foreach ($teachers as $tEntry) {
-                                    $names[] = $tEntry->name ?? ($tEntry->user ? ($tEntry->user->firstName . ' ' . $tEntry->user->lastName) : '-');
-                                    $emails[] = $tEntry->email ?? ($tEntry->user->email ?? '-');
-                                    $teacherIdForRow = $tEntry->teacher->id ?? $tEntry->teacher->userId ?? $tEntry->teacher->id ?? '';
-                                }
-                                $teacherNames = implode(', ', $names);
-                                $teacherEmails = implode(', ', $emails);
+                            if ($teacher) {
+                                $teacherNames = $teacher->name ?? '-';
+                                $teacherEmails = $teacher->email ?? '-';
                             }
 
-                            $dataAttrs = 'data-course-id="' . htmlspecialchars($course->id) . '" '
-                                . 'data-teacher-id="' . htmlspecialchars($course->teacherId ?? $teacherIdForRow) . '" '
-                                . 'data-credits="' . htmlspecialchars($course->credits ?? '') . '" '
-                                . 'data-description="' . htmlspecialchars($course->description ?? '') . '"';
 
                             // Use precomputed map (courseId => status) passed from controller to determine enrollment state
                             $alreadyEnrolled = false;
@@ -74,7 +62,7 @@ $title = 'Kurzy';
                                 }
                             }
                         ?>
-                        <tr <?= $dataAttrs ?>>
+                        <tr>
                             <td data-field="name"><span class="value"><?= htmlspecialchars($course->name) ?></span></td>
                             <td data-field="teacher"><span class="value"><?= htmlspecialchars($teacherNames) ?></span></td>
                             <td data-field="teacherEmail"><span class="value"><?= htmlspecialchars($teacherEmails) ?></span></td>

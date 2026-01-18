@@ -22,138 +22,130 @@ class TeacherController extends BaseController
      */
     public function studenti(Request $request): Response
     {
-        $appUser = $this->app->getAuthenticator()->getUser();
-        if (!$appUser || !$appUser->isLoggedIn()) {
+        $user = $this->app->getAuthenticator()->getUser();
+        if (!$user || $user->getRole() !== 'teacher') {
             return $this->redirect($this->url('auth.index'));
         }
 
-        try { $role = $appUser->getRole(); } catch (\Throwable $_) { $role = null; }
-        if ($role !== 'teacher') {
-            // not a teacher -> redirect to home or login
-            return $this->redirect($this->url('auth.index'));
+        $teacher = Teacher::findByUserId((int)$user->getId());
+        if (!$teacher) {
+            return $this->html([
+                'students' => [],
+                'teacher' => null,
+                'courses' => [],
+            ]);
         }
 
-        $userId = $appUser->getId();
-        if ($userId === null) {
-            return $this->redirect($this->url('auth.index'));
-        }
-
-        $teacher = Teacher::findByUserId((int)$userId);
-        if ($teacher === null) {
-            // no teacher record
-            return $this->html(['students' => [], 'teacher' => null]);
-        }
-
-        // find courses taught by this teacher
         $courses = Course::findByTeacherId((int)$teacher->id);
+        if (empty($courses)) {
+            return $this->html([
+                'students' => [],
+                'teacher' => $teacher,
+                'courses' => [],
+            ]);
+        }
+
+        $students = $this->loadStudentsForTeacherCourses($courses);
+
+        return $this->html([
+            'students' => $students,
+            'teacher' => $teacher,
+            'courses' => $courses,
+        ]);
+    }
+
+
+    private function loadStudentsForTeacherCourses(array $courses): array
+    {
         $coursesById = [];
         $courseIds = [];
+
         foreach ($courses as $c) {
             $coursesById[$c->id] = $c;
             $courseIds[] = $c->id;
         }
 
-        $studentsMap = []; // studentId => ['student' => Student, 'user' => User, 'courses' => [cid => ['course'=>Course,'enrollment'=>Enrollment],...]]
+        $placeholders = implode(', ', array_fill(0, count($courseIds), '?'));
 
-        if (!empty($courseIds)) {
-            // build placeholders
-            $placeholders = implode(', ', array_fill(0, count($courseIds), '?'));
-            $params = $courseIds;
-            // only include enrollments that are approved (teacher likely interested in actual enrolled students)
-            $where = "course_id IN ($placeholders) AND status = ?";
-            $params[] = 'approved';
+        $enrollments = Enrollment::getAll(
+            "course_id IN ($placeholders) AND status = ?",
+            [...$courseIds, 'approved']
+        );
 
-            $enrollments = Enrollment::getAll($where, $params);
+        $studentsMap = [];
 
-            foreach ($enrollments as $en) {
-                $sid = $en->studentId;
-                if ($sid === null) continue;
-                if (!isset($studentsMap[$sid])) {
-                    $st = Student::findById((int)$sid);
-                    if ($st === null) continue;
-                    $studentsMap[$sid] = [
-                        'student' => $st,
-                        'user' => $st->getUser(),
-                        'courses' => [],
-                    ];
-                }
-                $cid = $en->courseId;
-                if ($cid !== null && isset($coursesById[$cid])) {
-                    // store both course and the enrollment so view can show grade
-                    $studentsMap[$sid]['courses'][$cid] = [
-                        'course' => $coursesById[$cid],
-                        'enrollment' => $en,
-                    ];
-                }
+        foreach ($enrollments as $en) {
+            if (!$en->studentId || !$en->courseId) {
+                continue;
             }
+
+            if (!isset($studentsMap[$en->studentId])) {
+                $student = Student::findById((int)$en->studentId);
+                if (!$student) continue;
+
+                $studentsMap[$en->studentId] = [
+                    'student' => $student,
+                    'user' => $student->getUser(),
+                    'courses' => [],
+                ];
+            }
+
+            $studentsMap[$en->studentId]['courses'][$en->courseId] = [
+                'course' => $coursesById[$en->courseId],
+                'enrollment' => $en,
+            ];
         }
 
-        // convert map to indexed array
-        $students = array_values($studentsMap);
-
-        return $this->html(['students' => $students, 'teacher' => $teacher, 'courses' => $courses]);
+        return array_values($studentsMap);
     }
+
 
     /**
      * Update grade for an enrollment. Only allowed if logged-in teacher actually teaches the course.
      */
     public function updateGrade(Request $request): Response
     {
-        $appUser = $this->app->getAuthenticator()->getUser();
-        if (!$appUser || !$appUser->isLoggedIn()) {
-            if ($request->isAjax()) {
-                return $this->json(['success' => false, 'message' => 'Nie ste prihlásený.']);
-            }
-            return $this->redirect($this->url('auth.index'));
+        $user = $this->app->getAuthenticator()->getUser();
+        if (!$user || $user->getRole() !== 'teacher') {
+            return $this->deny($request, 'Nemáte oprávnenie.');
         }
 
-        try { $role = $appUser->getRole(); } catch (\Throwable $_) { $role = null; }
-        if ($role !== 'teacher') {
-            if ($request->isAjax()) {
-                return $this->json(['success' => false, 'message' => 'Nemáte oprávnenie.']);
-            }
-            return $this->redirect($this->url('auth.index'));
-        }
-
-        $userId = $appUser->getId();
-        if ($userId === null) {
-            if ($request->isAjax()) {
-                return $this->json(['success' => false, 'message' => 'Neznámy používateľ.']);
-            }
-            return $this->redirect($this->url('auth.index'));
-        }
-
-        $teacher = Teacher::findByUserId((int)$userId);
-        if ($teacher === null) {
-            if ($request->isAjax()) {
-                return $this->json(['success' => false, 'message' => 'Nenašiel sa učiteľ.']);
-            }
-            return $this->redirect($this->url('auth.index'));
+        $teacher = Teacher::findByUserId((int)$user->getId());
+        if (!$teacher) {
+            return $this->deny($request, 'Nenašiel sa učiteľ.');
         }
 
         $enrollmentId = $request->post('enrollmentId');
         $grade = $request->post('grade');
 
-        if ($enrollmentId === null) {
-            if ($request->isAjax()) {
-                return $this->json(['success' => false, 'message' => 'Chýba ID zápisu.']);
-            }
-            return $this->redirect($this->url('teacher.studenti'));
+        if (!$enrollmentId) {
+            return $this->deny($request, 'Chýba ID zápisu.');
         }
 
-
-        // delegate update to model helper
-        $res = Enrollment::updateZnamky((int)$enrollmentId, $grade);
+        $result = Enrollment::updateZnamky((int)$enrollmentId, $grade);
 
         if ($request->isAjax()) {
-            if (!empty($res['success'])) {
-                return $this->json(['success' => true, 'grade' => $res['grade'] ?? null]);
-            }
-            return $this->json(['success' => false, 'message' => $res['message'] ?? 'Chyba pri ukladaní.']);
+            return $this->json([
+                'success' => !empty($result['success']),
+                'grade'   => $result['grade'] ?? null,
+                'message' => $result['message'] ?? null,
+            ]);
         }
 
-        // non-ajax fallback: redirect back
         return $this->redirect($this->url('teacher.studenti'));
+    }
+
+
+    private function deny(Request $request, string $message): Response
+    {
+        if ($request->isAjax()) {
+            return $this->json([
+                'success' => false,
+                'message' => $message,
+            ]);
+        }
+
+        return $this->redirect($this->url('auth.index'));
     }
 
 }

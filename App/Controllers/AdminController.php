@@ -28,14 +28,12 @@ class AdminController extends BaseController
         if (!$appUser->isLoggedIn()) {
             return $this->redirect($this->url('auth.index'));
         }
-
         try { $role = $appUser->getRole(); }
         catch (\Throwable $_) { $role = null; }
 
         if ($role !== 'admin') {
             return $this->redirect($this->url('auth.index'));
         }
-
         return null; // OK → povolené
     }
     // Unified users listing (students + teachers + others)
@@ -43,6 +41,11 @@ class AdminController extends BaseController
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
+        $session = $this->app->getSession();
+
+        // 🔹 prečítaj chyby zo session (flash)
+        $errors = $session->get('errors');
+        $session->remove('errors');
         // Load all users
         $users = User::getAllUsers();
 
@@ -51,37 +54,28 @@ class AdminController extends BaseController
         $students = Student::getAllStudents();
         $teachers = Teacher::getAllTeachers();
 
-        return $this->html(['users' => $users, 'students' => $students, 'teachers' => $teachers]);
+        return $this->html(['users' => $users, 'students' => $students, 'teachers' => $teachers, 'errors' => $errors,], 'pouzivatelia');
     }
 
     public function approveEnrollment(Request $request): Response
     {
+        if ($resp = $this->requireAdmin()) return $resp;
         // Accept id via POST
         $id = $request->post('id');
         if ($id === null) {
             return $this->redirect($this->url('enrollment.zapisy'));
         }
 
-        // Use model helper to approve
         Enrollment::approveById((int)$id);
-
         return $this->redirect($this->url('enrollment.zapisy'));
     }
 
-
     public function editUser(Request $request): Response
     {
-
         if ($resp = $this->requireAdmin()) return $resp;
 
-        $requestedId = $request->get('id');
-        if ($requestedId === null) {
-            return $this->redirect($this->url('admin.pouzivatelia'));
-        }
-
-        $userId = (int)$requestedId;
-        $user = UserModel::findById($userId);
-        if ($user === null) {
+        $user = UserModel::findById((int)$request->get('id'));
+        if (!$user) {
             return $this->redirect($this->url('admin.pouzivatelia'));
         }
 
@@ -91,13 +85,11 @@ class AdminController extends BaseController
 
     public function updateUser(Request $request): Response
     {
+        if ($resp = $this->requireAdmin()) return $resp;
         $id = $request->post('id');
-        if ($id === null) {
-            return $this->redirect($this->url('admin.pouzivatelia'));
-        }
+        $user = $id ? UserModel::findById((int)$id) : null;
 
-        $user = UserModel::findById((int)$id);
-        if ($user === null) {
+        if (!$user) {
             return $this->redirect($this->url('admin.pouzivatelia'));
         }
 
@@ -109,14 +101,12 @@ class AdminController extends BaseController
             'passwordConfirm' => $request->post('passwordConfirm'),
         ];
 
-        // extra fields
+        // student and teacher extra fields
         $studentNumber = trim((string)$request->post('studentNumber'));
         $year = $request->post('year');
         $department = trim((string)$request->post('department'));
 
         $errors = $user->updateProfile($data);
-
-
 
         // If there are errors, pass posted extra values back to the view so the form preserves them
         $studentData = ['studentNumber' => $studentNumber, 'year' => $year];
@@ -125,7 +115,6 @@ class AdminController extends BaseController
         if (!empty($errors)) {
             return $this->html(['userModel' => $user, 'errors' => $errors, 'studentData' => $studentData, 'teacherData' => $teacherData], 'editUser');
         }
-
 
         $student = Student::findByUserId($user->id);
         if ($student !== null) {
@@ -152,14 +141,12 @@ class AdminController extends BaseController
             }
         }
 
-        // If any errors accumulated from student/teacher updates, re-render
         if (!empty($errors)) {
             return $this->html(['userModel' => $user, 'errors' => $errors, 'studentData' => $studentData, 'teacherData' => $teacherData], 'editUser');
         }
 
         return $this->redirect($this->url('admin.pouzivatelia'));
     }
-
 
     public function createUser(Request $request): Response
     {
@@ -187,7 +174,6 @@ class AdminController extends BaseController
 
         $posted = ['firstName'=>$firstName,'lastName'=>$lastName,'email'=>$email,'role'=>$role,'studentNumber'=>$studentNumber,'year'=>$year,'department'=>$department];
 
-        // create user via model helper
         $userRes = UserModel::create([
             'firstName'=>$firstName,
             'lastName'=>$lastName,
@@ -203,7 +189,7 @@ class AdminController extends BaseController
 
         $user = $userRes['user'];
         if ($user === null) {
-            return $this->html(['errors'=>['Neočakovaná chyba pri vytváraní používateľa.'],'posted'=>$posted], 'createUser');
+            return $this->html(['errors'=>['Neočakavaná chyba pri vytváraní používateľa.'],'posted'=>$posted], 'createUser');
         }
 
         // create related records depending on role; if creation fails, delete the user and show errors
@@ -226,7 +212,6 @@ class AdminController extends BaseController
         return $this->redirect($this->url('admin.pouzivatelia'));
     }
 
-    // Create course form (GET)
     public function createCourse(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
@@ -259,40 +244,27 @@ class AdminController extends BaseController
         return $this->redirect($this->url('course.kurzy'));
     }
 
-    // Edit course form (GET)
     public function editCourse(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        $requestedId = $request->get('id');
-        if ($requestedId === null) {
+        $course = Course::findById((int)$request->get('id'));
+        if (!$course) {
             return $this->redirect($this->url('course.kurzy'));
         }
-
-        $courseId = (int)$requestedId;
-        $course = Course::findById($courseId);
-        if ($course === null) {
-            return $this->redirect($this->url('course.kurzy'));
-        }
-
         // provide list of teachers for select
         $teachers = Teacher::getAllTeachers();
 
         return $this->html(['course' => $course, 'teachers' => $teachers], 'editCourse');
     }
 
-    // Handle edit course POST (non-AJAX)
     public function updateCoursePost(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        $id = $request->post('id');
-        if ($id === null) {
-            return $this->redirect($this->url('course.kurzy'));
-        }
+        $course = Course::findById((int)$request->post('id'));
 
-        $course = Course::findById((int)$id);
-        if ($course === null) {
+        if (!$course) {
             return $this->redirect($this->url('course.kurzy'));
         }
 
@@ -317,71 +289,52 @@ class AdminController extends BaseController
         return $this->redirect($this->url('course.kurzy'));
     }
 
-    // Delete a course (admin only)
     public function deleteCourse(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        $id = $request->post('id');
-        if ($id === null) {
-            return $this->redirect($this->url('course.kurzy'));
-        }
+        $course = Course::findById((int)$request->post('id'));
 
-        $course = Course::findById((int)$id);
-        if ($course === null) {
+        if (!$course) {
             return $this->redirect($this->url('course.kurzy'));
         }
 
         try {
             $course->delete();
         } catch (\Throwable $e) {
-            // If deletion fails, re-render the list with an error
-            $courses = Course::getAllCourses();
-            // Recompute courseTeachers like in kurzy()
-            $courseTeachers = [];
-            foreach ($courses as $c) {
-                $teachersForCourse = [];
-                if (!empty($c->teacherId)) {
-                    $t = Teacher::findById($c->teacherId);
-                    if ($t !== null) {
-                        $u = $t->getUser();
-                        $teachersForCourse[] = (object)[
-                            'teacher' => $t,
-                            'user' => $u,
-                            'name' => $u ? ($u->firstName . ' ' . $u->lastName) : null,
-                            'email' => $u ? $u->email : null,
-                        ];
-                    }
-                }
-                $courseTeachers[$c->id] = $teachersForCourse;
+            // Store error message in session (flash-like) and redirect back to courses list
+            try {
+                $this->app->getSession()->set('errors', ['Chyba pri mazaní kurzu: ' . $e->getMessage()]);
+            } catch (\Throwable $_) {
+                // ignore session errors
             }
-            return $this->html(['courses' => $courses, 'courseTeachers' => $courseTeachers, 'errors' => ['Chyba pri mazaní kurzu: ' . $e->getMessage()]], 'kurzy');
+
+            return $this->redirect($this->url('course.kurzy'));
         }
 
         return $this->redirect($this->url('course.kurzy'));
+
     }
 
-    // Delete a user (admin only)
     public function deleteUser(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        $id = $request->post('id');
-        if ($id === null) {
-            return $this->redirect($this->url('admin.pouzivatelia'));
-        }
+        $user = UserModel::findById((int)$request->post('id'));
 
-        $user = UserModel::findById((int)$id);
-        if ($user === null) {
+        if (!$user) {
             return $this->redirect($this->url('admin.pouzivatelia'));
         }
 
         try {
             $user->delete();
         } catch (\Throwable $e) {
-            // If deletion fails, re-render the list with an error
-            $users = UserModel::getAllUsers();
-            return $this->html(['users' => $users, 'errors' => ['Chyba pri mazaní používateľa: ' . $e->getMessage()]], 'pouzivatelia');
+            try {
+                $this->app->getSession()->set(
+                    'errors',
+                    ['Chyba pri mazaní používateľa. Používateľ má naviazané záznamy.']
+                );
+            } catch (\Throwable $_) {}
         }
 
         return $this->redirect($this->url('admin.pouzivatelia'));

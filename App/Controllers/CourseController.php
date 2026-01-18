@@ -19,59 +19,29 @@ class CourseController extends BaseController
     // Action that shows the shared courses view for admin and student
     public function kurzy(Request $request): Response
     {
-        // Prepare courses
+        $session = $this->app->getSession();
+        $errors = $session->get('errors');
+        $session->remove('errors');
+
+        // Load data
         $courses = Course::getAllCourses();
-
-        // Precompute teachers for each course
-        $courseTeachers = [];
-        foreach ($courses as $c) {
-            $teachersForCourse = [];
-            if (!empty($c->teacherId)) {
-                $t = Teacher::findById($c->teacherId);
-                if ($t !== null) {
-                    $u = $t->getUser();
-                    $teachersForCourse[] = (object)[
-                        'teacher' => $t,
-                        'user' => $u,
-                        'name' => $u ? ($u->firstName . ' ' . $u->lastName) : null,
-                        'email' => $u ? $u->email : null,
-                    ];
-                }
-            }
-            $courseTeachers[$c->id] = $teachersForCourse;
-        }
-
-        // flat list of teachers for selects (may be used by admin-only UI)
         $allTeachers = Teacher::getAllTeachers();
 
-        // Decide permissions based on current user's role
+        // Resolve current user and role
         $appUser = $this->app->getAuthenticator()->getUser();
-
-        try { $role = $appUser->getRole(); } catch (\Throwable $_) { $role = null; }
+        $role = $appUser ? $appUser->getRole() : null;
 
         $isAdmin = ($role === 'admin');
         $isStudent = ($role === 'student');
 
-        // Prepare a map of student's enrollments to avoid DB calls from view
-        $studentEnrollmentsMap = [];
-        if ($isStudent && $appUser && $appUser->getId() !== null) {
-            try {
-                $studentModel = Student::findByUserId((int)$appUser->getId());
-                if ($studentModel !== null && $studentModel->id !== null) {
-                    $ens = Enrollment::getAll('student_id = ?', [$studentModel->id]);
-                    foreach ($ens as $e) {
-                        if ($e->courseId !== null) {
-                            $studentEnrollmentsMap[$e->courseId] = $e->status ?? null;
-                        }
-                    }
-                }
-            } catch (\Throwable $_) {
-                // ignore and leave map empty
-                $studentEnrollmentsMap = [];
-            }
-        }
+        // Prepare teachers per course
+        $courseTeachers = $this->prepareCourseTeachers($courses);
 
-        // The shared view can use these flags to show/hide buttons and actions
+        // Prepare enrollments map for student
+        $studentEnrollmentsMap = $isStudent && $appUser
+            ? $this->prepareStudentEnrollmentsMap((int)$appUser->getId())
+            : [];
+
         return $this->html([
             'courses' => $courses,
             'courseTeachers' => $courseTeachers,
@@ -79,6 +49,59 @@ class CourseController extends BaseController
             'isAdmin' => $isAdmin,
             'isStudent' => $isStudent,
             'studentEnrollmentsMap' => $studentEnrollmentsMap,
+            'errors' => $errors,
         ], 'kurzy');
+    }
+
+    private function prepareCourseTeachers(array $courses): array
+    {
+        $result = [];
+
+        foreach ($courses as $course) {
+            $result[$course->id] = null;
+
+            if (!$course->teacherId) {
+                continue;
+            }
+
+            $teacher = Teacher::findById($course->teacherId);
+            if (!$teacher) {
+                continue;
+            }
+
+            $user = $teacher->getUser();
+            if (!$user) {
+                continue;
+            }
+
+            $result[$course->id] = (object)[
+                'teacher' => $teacher,
+                'user' => $user,
+                'name' => $user->firstName . ' ' . $user->lastName,
+                'email' => $user->email,
+            ];
+        }
+
+        return $result;
+    }
+
+    private function prepareStudentEnrollmentsMap(int $userId): array
+    {
+        $map = [];
+
+        $student = Student::findByUserId($userId);
+        if (!$student || !$student->id) {
+            return $map;
+        }
+
+        $enrollments = Enrollment::getAll('student_id = ?', [$student->id]);
+
+        foreach ($enrollments as $e) {
+            if ($e->courseId !== null) {
+                $map[$e->courseId] = $e->status ?? null;
+            }
+        }
+
+        return $map;
     }
 }

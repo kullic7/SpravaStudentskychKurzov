@@ -1,66 +1,69 @@
-// In-place AJAX grade saving
-document.addEventListener('DOMContentLoaded', function () {
-    const forms = document.querySelectorAll('form.grade-ajax-form');
-    forms.forEach(form => {
-        form.addEventListener('submit', async function (e) {
+document.addEventListener('DOMContentLoaded', () => {
+    const VALID_GRADE = /^(A|B|C|D|E|FX)$/;
+
+    document.querySelectorAll('form.grade-ajax-form').forEach(form => {
+        const btn = form.querySelector('button[type="submit"]');
+        const status = form.querySelector('.save-status');
+        const errorEl = form.querySelector('.save-error');
+        const input = form.querySelector('input[name="grade"]');
+        const enrollmentId = form.querySelector('input[name="enrollmentId"]')?.value;
+
+        if (!enrollmentId) return;
+
+        form.addEventListener('submit', async e => {
             e.preventDefault();
-            const btn = form.querySelector('button[type="submit"]');
-            const status = form.querySelector('.save-status');
-            const errorEl = form.querySelector('.save-error');
-            const input = form.querySelector('input[name="grade"]');
-            const enrollmentId = form.querySelector('input[name="enrollmentId"]')?.value;
 
-            if (!enrollmentId) return;
-
-            // validate input
-            const value = input.value.trim().toUpperCase();
-            if (value !== '' && !/^(A|B|C|D|E|FX)$/.test(value)) {
-                errorEl.textContent = 'Neplatná známka: Známka musí byť A, B, C, D, E alebo Fx.';
-                errorEl.style.display = 'inline';
+            const grade = input.value.trim().toUpperCase();
+            if (grade && !VALID_GRADE.test(grade)) {
+                showError(errorEl, 'Neplatná známka: A, B, C, D, E alebo FX.');
                 return;
             }
 
-            // prepare body
-            const body = new URLSearchParams();
-            body.append('enrollmentId', enrollmentId);
-            body.append('grade', value);
-
-            // UI state
-            btn.disabled = true;
-            status.style.display = 'none';
-            errorEl.style.display = 'none';
+            setLoading(btn, status, errorEl, true);
 
             try {
-                const resp = await fetch(form.action, {
+                const res = await fetch(form.action, {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json',
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
                     },
-                    body: body.toString()
+                    body: new URLSearchParams({
+                        enrollmentId,
+                        grade
+                    })
                 });
 
-                const data = await resp.json();
-                if (data && data.success) {
-                    // update input to reflect stored grade (null -> empty)
-                    input.value = data.grade === null || data.grade === undefined ? '' : data.grade;
-                    status.style.display = 'inline';
-                    // hide status after 1.5s
-                    setTimeout(() => { status.style.display = 'none'; }, 1500);
+                const data = await res.json();
+
+                if (data?.success) {
+                    input.value = data.grade ?? '';
+                    showStatus(status);
                 } else {
-                    const msg = (data && data.message) ? data.message : 'Chyba';
-                    errorEl.textContent = msg;
-                    errorEl.style.display = 'inline';
-                    setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+                    showError(errorEl, data?.message || 'Chyba pri ukladaní.');
                 }
-            } catch (err) {
-                errorEl.textContent = 'Chyba komunikácie';
-                errorEl.style.display = 'inline';
-                setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+            } catch {
+                showError(errorEl, 'Chyba komunikácie so serverom.');
             } finally {
                 btn.disabled = false;
             }
         });
     });
+
+    function showError(el, msg) {
+        el.textContent = msg;
+        el.style.display = 'inline';
+        setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    function showStatus(el) {
+        el.style.display = 'inline';
+        setTimeout(() => el.style.display = 'none', 1500);
+    }
+
+    function setLoading(btn, status, errorEl, loading) {
+        btn.disabled = loading;
+        status.style.display = 'none';
+        errorEl.style.display = 'none';
+    }
 });

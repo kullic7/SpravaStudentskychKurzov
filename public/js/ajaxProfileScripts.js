@@ -1,60 +1,55 @@
-// Profile page JavaScript
-// Handles AJAX submit of the profile form and displays success/errors
-
-
-function escapeHtml(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-}
-
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('profileForm');
-    if (!form) return;
     const alertBox = document.getElementById('profileAlert');
     const submitBtn = document.getElementById('profileSubmit');
 
-    form.addEventListener('submit', async function (e) {
+    if (!form || !alertBox || !submitBtn) return;
+
+    const escapeHtml = str =>
+        String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+    const showAlert = (type, html) => {
+        alertBox.innerHTML = `<div class="alert alert-${type}">${html}</div>`;
+    };
+
+    form.addEventListener('submit', async e => {
         e.preventDefault();
-        if (alertBox) alertBox.innerHTML = '';
+        alertBox.innerHTML = '';
         submitBtn.disabled = true;
 
         try {
-            const formData = new FormData(form);
-
             const response = await fetch(form.action, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: formData
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form)
             });
 
             const data = await response.json();
 
-            if (!response.ok) {
-                if (alertBox) alertBox.innerHTML = '<div class="alert alert-danger">Server error</div>';
-            } else if (data.success) {
-                if (alertBox) alertBox.innerHTML = '<div class="alert alert-success">' + escapeHtml(data.message || 'Profil uložený') + '</div>';
-            } else {
-                const errs = data.errors || ['Neznáma chyba'];
-                let html = '<div class="alert alert-danger"><ul class="mb-0">';
-                for (const err of errs) {
-                    html += '<li>' + escapeHtml(err) + '</li>';
-                }
-                html += '</ul></div>';
-                if (alertBox) alertBox.innerHTML = html;
+            if (data.success) {
+                showAlert(
+                    'success',
+                    escapeHtml(data.message || 'Profil uložený')
+                );
+                return;
             }
 
+            const errors = (data.errors || ['Neznáma chyba'])
+                .map(e => `<li>${escapeHtml(e)}</li>`)
+                .join('');
+
+            showAlert('danger', `<ul class="mb-0">${errors}</ul>`);
+
         } catch (err) {
-            console.error('AJAX error', err);
-            if (alertBox) alertBox.innerHTML = '<div class="alert alert-danger">Chyba pri ukladaní. Skúste to neskôr.</div>';
+            console.error(err);
+            showAlert('danger', 'Chyba pri ukladaní. Skúste to neskôr.');
         } finally {
             submitBtn.disabled = false;
         }
     });
 });
-

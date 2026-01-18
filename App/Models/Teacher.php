@@ -102,8 +102,8 @@ class Teacher extends Model
                     $errors[] = 'Oddelenie musí byť kratšie ako 255 znakov.';
                 }
                 // allow only letters (Unicode) and hyphen
-                if (!preg_match('/^[\p{L}-]+$/u', $dep)) {
-                    $errors[] = 'Oddelenie môže obsahovať len písmená a pomlčku.';
+                if (!preg_match('/^[\p{L}\- ]+$/u', $dep)) {
+                    $errors[] = 'Oddelenie môže obsahovať len písmená, medzeru a pomlčku.';
                 }
                 // set value only if no related errors
                 if (empty($errors)) {
