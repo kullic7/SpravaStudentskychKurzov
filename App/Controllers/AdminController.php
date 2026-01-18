@@ -72,14 +72,29 @@ class AdminController extends BaseController
 
     public function editUser(Request $request): Response
     {
-        if ($resp = $this->requireAdmin()) return $resp;
+        if ($resp = $this->requireAdmin()) {
+            return $resp;
+        }
 
-        $user = UserModel::findById((int)$request->get('id'));
+        $id = (int)$request->get('id');
+        if (!$id) {
+            return $this->redirect($this->url('admin.pouzivatelia'));
+        }
+
+        $user = UserModel::findById($id);
         if (!$user) {
             return $this->redirect($this->url('admin.pouzivatelia'));
         }
 
-        return $this->html(['userModel' => $user], 'editUser');
+        // načítanie súvisiacich entít
+        $student = Student::findByUserId($user->id);
+        $teacher = Teacher::findByUserId($user->id);
+
+        return $this->html([
+            'userModel' => $user,
+            'student'   => $student,   // môže byť null
+            'teacher'   => $teacher,   // môže byť null
+        ], 'editUser');
     }
 
 
