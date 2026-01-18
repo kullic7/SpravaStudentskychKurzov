@@ -39,23 +39,44 @@ class AdminController extends BaseController
     // Unified users listing (students + teachers + others)
     public function pouzivatelia(Request $request): Response
     {
-        if ($resp = $this->requireAdmin()) return $resp;
+        if ($resp = $this->requireAdmin()) {
+            return $resp;
+        }
 
         $session = $this->app->getSession();
 
-        // 🔹 prečítaj chyby zo session (flash)
+        // flash errors
         $errors = $session->get('errors');
         $session->remove('errors');
-        // Load all users
-        $users = User::getAllUsers();
 
-        // Also load students and teachers once and pass to the view
-        // so the view doesn't need to do per-row DB lookups.
+        // načítanie dát
+        $users = User::getAllUsers();
         $students = Student::getAllStudents();
         $teachers = Teacher::getAllTeachers();
 
-        return $this->html(['users' => $users, 'students' => $students, 'teachers' => $teachers, 'errors' => $errors,], 'pouzivatelia');
+        // mapovanie podľa userId (pripravené pre view)
+        $studentsByUser = [];
+        foreach ($students as $s) {
+            if (isset($s->userId)) {
+                $studentsByUser[$s->userId] = $s;
+            }
+        }
+
+        $teachersByUser = [];
+        foreach ($teachers as $t) {
+            if (isset($t->userId)) {
+                $teachersByUser[$t->userId] = $t;
+            }
+        }
+
+        return $this->html([
+            'users' => $users,
+            'studentsByUser' => $studentsByUser,
+            'teachersByUser' => $teachersByUser,
+            'errors' => $errors,
+        ], 'pouzivatelia');
     }
+
 
     public function approveEnrollment(Request $request): Response
     {
