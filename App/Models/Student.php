@@ -3,17 +3,6 @@
 namespace App\Models;
 
 use Framework\Core\Model;
-
-/**
- * Class Student
- *
- * Model for the `students` table.
- * Columns (DB / property):
- * - id -> id
- * - user_id -> userId
- * - student_number -> studentNumber
- * - year -> year
- */
 class Student extends Model
 {
     // Optional explicit table name (conventions would resolve this automatically)
@@ -42,21 +31,6 @@ class Student extends Model
         }
         return User::getOne($this->userId);
     }
-
-    /**
-     * Find student by student number
-     * @param string $studentNumber
-     * @return static|null
-     */
-    public static function findByStudentNumber(string $studentNumber): ?static
-    {
-        $items = static::getAll('student_number = ?', [$studentNumber], null, 1);
-        return $items[0] ?? null;
-    }
-
-    /**
-    // ---------------- convenience wrappers ----------------
-    */
 
     /**
      * Wrapper for retrieving all students.

@@ -3,20 +3,6 @@
 namespace App\Models;
 
 use Framework\Core\Model;
-
-/**
- * Class User
- *
- * Model for the `users` table.
- * Columns (DB / property):
- * - id -> id
- * - first_name -> firstName
- * - last_name -> lastName
- * - email -> email
- * - password_hash -> passwordHash
- * - role -> role
- * - created_at -> createdAt
- */
 class User extends Model
 {
     // Optional: explicitly set table name (conventions would resolve this automatically)
@@ -28,7 +14,6 @@ class User extends Model
         'created_at' => 'createdAt',
     ];
 
-    // Model properties (camelCase) — Framework will map snake_case DB columns to these names.
     public ?int $id = null;
     public ?string $firstName = null;
     public ?string $lastName = null;
@@ -36,8 +21,6 @@ class User extends Model
     public ?string $passwordHash = null;
     public ?string $role = null;
     public ?string $createdAt = null;
-
-
 
     /**
      * Get the user's role.
@@ -260,5 +243,4 @@ class User extends Model
             return ['user' => null, 'errors' => ['Chyba pri vytváraní používateľa: ' . $e->getMessage()]];
         }
     }
-
 }

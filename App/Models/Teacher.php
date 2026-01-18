@@ -15,7 +15,6 @@ use Framework\Core\Model;
  */
 class Teacher extends Model
 {
-    // Optional explicit table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'teachers';
     protected static array $columnsMap = [
         'user_id' => 'userId',
@@ -48,19 +47,6 @@ class Teacher extends Model
         $items = static::getAll('user_id = ?', [$userId], null, 1);
         return $items[0] ?? null;
     }
-
-    /**
-     * Find teachers by department
-     * @param string $department
-     * @param int|null $limit
-     * @return static[]
-     */
-    public static function findByDepartment(string $department, ?int $limit = null): array
-    {
-        return static::getAll('department = ?', [$department], null, $limit);
-    }
-
-    // ---------------- convenience wrappers ----------------
 
     /**
      * Wrapper for retrieving all teachers.
@@ -142,6 +128,4 @@ class Teacher extends Model
 
         return ['teacher' => $teacher, 'errors' => []];
     }
-
-
 }

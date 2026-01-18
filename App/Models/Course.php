@@ -54,19 +54,6 @@ class Course extends Model
     }
 
     /**
-     * Find course by exact name
-     * @param string $name
-     * @return static|null
-     */
-    public static function findByName(string $name): ?static
-    {
-        $items = static::getAll('name = ?', [$name], null, 1);
-        return $items[0] ?? null;
-    }
-
-    // ---------------- convenience wrappers ----------------
-
-    /**
      * Wrapper for retrieving all courses.
      * @return static[]
      */
@@ -183,8 +170,12 @@ class Course extends Model
         try {
             $course->save();
             return ['course' => $course, 'errors' => []];
-        } catch (\Throwable $e) {
-            return ['course' => null, 'errors' => ['Chyba pri vytváraní kurzu: ' . $e->getMessage()]];
+        } catch (\Exception $e) {
+
+            return [
+                'course' => null,
+                'errors' => ['Kurz sa nepodarilo vytvoriť.'],
+            ];
         }
     }
 

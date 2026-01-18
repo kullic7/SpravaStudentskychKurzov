@@ -18,13 +18,6 @@ class LoggedUser implements IIdentity
         return $this->id;
     }
 
-    public function getRoles(): array {
-        return [$this->role];
-    }
-
-    public function getEmail(): string {
-        return $this->email;
-    }
 
     public function getName(): string {
         return $this->firstName . ' ' . $this->lastName;
