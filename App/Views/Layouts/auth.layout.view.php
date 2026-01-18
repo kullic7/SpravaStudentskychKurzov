@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
 
-    <link rel="stylesheet" href="/css/mainBackgroundStyle.css?x=1234">
+    <link rel="stylesheet" href="/css/mainBackgroundStyle.css?x=124">
     <link rel="stylesheet" href="/css/logoStyle.css?x=123">
     <link rel="stylesheet" href="/css/loginCoverStyle.css?x=123">
     <link rel="stylesheet" href="/css/loginInputStyle.css?x=123">

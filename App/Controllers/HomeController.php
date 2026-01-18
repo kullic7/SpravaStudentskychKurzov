@@ -17,108 +17,129 @@ class HomeController extends BaseController
     // Dashboard - shows different content depending on user's role
     public function index(Request $request): Response
     {
-        //return $this->html([], 'login');
         $user = $this->app->getAuthenticator()->getUser();
-        $role = strtolower($user->getRole());
+        if (!$user) {
+            return $this->redirect('?c=auth&a=login');
+        }
 
-        switch ($role) {
-            case 'admin':
-                // fetch counts from DB and pass to view
-                $courseCount = Course::getCount();
-                $userCount = User::getCount();
-                $enrollmentCount = Enrollment::getPendingCount();
+        return match (strtolower($user->getRole())) {
+            'admin'   => $this->html($this->prepareAdminData(), 'admin'),
+            'teacher' => $this->html($this->prepareTeacherData($user), 'teacher'),
+            'student' => $this->html($this->prepareStudentData($user), 'student'),
+            default   => $this->redirect('?c=auth&a=login'),
+        };
+    }
 
-                return $this->html([
-                    'courseCount' => $courseCount,
-                    'userCount' => $userCount,
-                    'enrollmentCount' => $enrollmentCount
-                ], 'admin');
-            case 'teacher':
-                // Prepare teacher-specific stats: number of courses, students count, and per-course rows
-                $totalCourses = 0;
-                $studentsCount = 0;
-                $teacherCourses = [];
+    private function prepareAdminData(): array
+    {
+        return [
+            'courseCount' => Course::getCount(),
+            'userCount' => User::getCount(),
+            'enrollmentCount' => Enrollment::getPendingCount(),
+        ];
+    }
 
-                try {
-                    $appUserId = $user->getId();
-                    if ($appUserId !== null) {
-                        $teacherModel = Teacher::findByUserId($appUserId);
-                        if ($teacherModel !== null && $teacherModel->id !== null) {
-                            $courses = Course::findByTeacherId($teacherModel->id);
-                            $totalCourses = count($courses);
+    private function prepareTeacherData($user): array
+    {
+        $totalCourses = 0;
+        $studentsCount = 0;
+        $teacherCourses = [];
 
-                            foreach ($courses as $c) {
-                                // count approved students for this course
-                                $studentCount = Enrollment::getCount('course_id = ? AND status = ?', [$c->id, 'approved']);
-                                $studentsCount += $studentCount;
+        try {
+            $teacher = Teacher::findByUserId($user->getId());
+            if (!$teacher || !$teacher->id) {
+                return compact('totalCourses', 'studentsCount', 'teacherCourses');
+            }
 
-                                // compute average grade using Enrollment model helper (approved enrollments only)
-                                $avg = Enrollment::averageGradeByCourse($c->id);
+            $courses = Course::findByTeacherId($teacher->id);
+            $totalCourses = count($courses);
 
-                                $teacherCourses[] = [
-                                    'courseId' => $c->id,
-                                    'name' => $c->name,
-                                    'credits' => $c->credits,
-                                    'studentCount' => $studentCount,
-                                    'averageGrade' => $avg,
-                                ];
-                            }
-                        }
+            $uniqueStudentIds = [];
+
+            foreach ($courses as $c) {
+                $studentCount = Enrollment::getCount(
+                    'course_id = ? AND status = ?',
+                    [$c->id, 'approved']
+                );
+
+                $avg = Enrollment::averageGradeByCourse($c->id);
+
+                $enrollments = Enrollment::getAll(
+                    'course_id = ? AND status = ?',
+                    [$c->id, 'approved']
+                );
+
+                foreach ($enrollments as $e) {
+                    if (!empty($e->studentId)) {
+                        $uniqueStudentIds[(int)$e->studentId] = true;
                     }
-                } catch (\Throwable $_) {
-                    // keep defaults on error
                 }
 
-                return $this->html([
-                    'totalCourses' => $totalCourses,
-                    'studentsCount' => $studentsCount,
-                    'teacherCourses' => $teacherCourses
-                ], 'teacher');
-             case 'student':
-                 // compute student-specific stats: total courses, pending enrollments, average grade
-                 $totalCourses = 0;
-                 $pendingEnrollments = 0;
-                 $averageGrade = null;
-                 $studentEnrollments = [];
+                $teacherCourses[] = [
+                    'courseId' => $c->id,
+                    'name' => $c->name,
+                    'credits' => $c->credits,
+                    'studentCount' => $studentCount,
+                    'averageGrade' => $avg,
+                ];
+            }
 
-                 try {
-                     $appUserId = $user->getId();
-                     if ($appUserId !== null) {
-                         $studentModel = Student::findByUserId($appUserId);
-                         if ($studentModel !== null && $studentModel->id !== null) {
-                             $totalCourses = Enrollment::countByStudent($studentModel->id);
-                             $pendingEnrollments = Enrollment::pendingCountByStudent($studentModel->id);
-                             $averageGrade = Enrollment::averageGradeByStudent($studentModel->id);
-
-                             // load enrollments and related course info for the table
-                             // only include already approved enrollments for the student's course table
-                             $ens = Enrollment::getAll('student_id = ? AND status = ?', [$studentModel->id, 'approved']);
-                              foreach ($ens as $e) {
-                                  $course = $e->getCourse();
-                                  // ensure teacher name is included per enrollment
-                                  $studentEnrollments[] = [
-                                      'courseId' => $course?->id ?? null,
-                                      'courseName' => $course?->name ?? '-',
-                                      'teacherName' => $course?->getTeacher()?->getUser()?->getName() ?? '-',
-                                      'description' => $course?->description ?? null,
-                                      'credits' => $course?->credits ?? null,
-                                      'grade' => $e->grade ?? null,
-                                  ];
-                              }
-                         }
-                     }
-                 } catch (\Throwable $_) {
-                     // keep defaults on error
-                 }
-
-                 return $this->html([
-                     'totalCourses' => $totalCourses,
-                     'pendingEnrollments' => $pendingEnrollments,
-                     'averageGrade' => $averageGrade,
-                     'enrollments' => $studentEnrollments
-                 ], 'student');
-             default:
-                 return $this->redirect('?c=auth&a=login');
+            $studentsCount = count($uniqueStudentIds);
+        } catch (\Throwable $_) {
+            // keep defaults
         }
+
+        return compact('totalCourses', 'studentsCount', 'teacherCourses');
+    }
+
+    private function prepareStudentData($user): array
+    {
+        $totalCourses = 0;
+        $pendingEnrollments = 0;
+        $averageGrade = null;
+        $studentEnrollments = [];
+
+        try {
+            $student = Student::findByUserId($user->getId());
+            if (!$student || !$student->id) {
+                return [
+                    'totalCourses' => $totalCourses,
+                    'pendingEnrollments' => $pendingEnrollments,
+                    'averageGrade' => $averageGrade,
+                    'enrollments' => $studentEnrollments,
+                ];
+            }
+
+            $totalCourses = Enrollment::countByStudent($student->id);
+            $pendingEnrollments = Enrollment::pendingCountByStudent($student->id);
+            $averageGrade = Enrollment::averageGradeByStudent($student->id);
+
+            $enrollments = Enrollment::getAll(
+                'student_id = ? AND status = ?',
+                [$student->id, 'approved']
+            );
+
+            foreach ($enrollments as $e) {
+                $course = $e->getCourse();
+
+                $studentEnrollments[] = [
+                    'courseId' => $course?->id ?? null,
+                    'courseName' => $course?->name ?? '-',
+                    'teacherName' => $course?->getTeacher()?->getUser()?->getName() ?? '-',
+                    'description' => $course?->description ?? null,
+                    'credits' => $course?->credits ?? null,
+                    'grade' => $e->grade ?? null,
+                ];
+            }
+        } catch (\Throwable $_) {
+            // keep defaults
+        }
+
+        return [
+            'totalCourses' => $totalCourses,
+            'pendingEnrollments' => $pendingEnrollments,
+            'averageGrade' => $averageGrade,
+            'enrollments' => $studentEnrollments,
+        ];
     }
 }

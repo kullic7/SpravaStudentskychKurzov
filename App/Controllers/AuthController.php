@@ -18,10 +18,8 @@ class AuthController extends BaseController
     public function index(Request $request): Response
     {
         return $this->html([], "login");
-        // toto hľadá súbor App/Views/Auth/login.view.php
     }
 
-    // SPRACOVANIE FORMULÁRA
     public function login(Request $request): Response
     {
         $logged = null;
@@ -32,7 +30,7 @@ class AuthController extends BaseController
 
             }
         }
-        // NEÚSPEŠNÉ PRIHLÁSENIE ALEBO PRVÉ ZOBRAZENIE
+
         return $this->html([
             'error' => $logged === false ? 'Bad username or password' : null
         ], 'login');
@@ -46,11 +44,9 @@ class AuthController extends BaseController
         if ($auth !== null) {
             $auth->logout();
         } else {
-            // If no authenticator is configured, attempt to clear session as a fallback
             try {
                 $this->app->getSession()->destroy();
             } catch (\Throwable $e) {
-                // ignore
             }
         }
 
@@ -58,34 +54,22 @@ class AuthController extends BaseController
         return $this->redirect($this->url('auth.index'));
     }
 
-    // ZOBRAZI PROFILE (spoločný pre všetky role)
     public function profile(Request $request): Response
     {
-        // Ensure user is logged in
         $appUser = $this->app->getAuthenticator()->getUser();
-        if (!$appUser->isLoggedIn()) {
+        if (!$appUser || !$appUser->isLoggedIn()) {
             return $this->redirect($this->url('auth.index'));
         }
 
-        // allow optional id param to view another user's profile (admins only)
         $requestedId = $request->get('id');
-        $viewerRole = null;
-        try { $viewerRole = $appUser->getRole(); } catch (\Throwable $_) { $viewerRole = null; }
+        $userId = $appUser->getId();
 
-        if ($requestedId !== null) {
-            // if admin, allow viewing others
-            if ($viewerRole === 'admin') {
-                $userId = (int)$requestedId;
-            } else {
-                // non-admins may only view their own profile
-                $userId = $appUser->getId();
-            }
-        } else {
-            $userId = $appUser->getId();
+        if ($requestedId !== null && $appUser->getRole() === 'admin') {
+            $userId = (int) $requestedId;
         }
 
         $user = UserModel::findById($userId);
-        if ($user === null) {
+        if (!$user) {
             return $this->redirect($this->url('home.index'));
         }
 

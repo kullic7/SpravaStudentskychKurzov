@@ -11,7 +11,7 @@
     <title><?= $title ?? 'Správa kurzov' ?></title>
 
     <link rel="stylesheet" href="/css/logoStyle.css?x=123">
-    <link rel="stylesheet" href="/css/mainBackgroundStyle.css?x=123">
+    <link rel="stylesheet" href="/css/mainBackgroundStyle.css?x=1234">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -70,8 +70,6 @@
         </div>
     </nav>
 </header>
-
-
 
 <!-- CONTENT -->
 <main class="container py-5">
