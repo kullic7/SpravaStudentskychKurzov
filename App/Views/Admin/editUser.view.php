@@ -1,13 +1,13 @@
 <?php
 /** @var \App\Models\User $userModel */
+/** @var \App\Models\User $student */
+/** @var \App\Models\User $teacher */
 /** @var array|null $errors */
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
 
 $view->setLayout('home');
 
-
-// Ensure these are defined even when controller didn't pass them (avoids notices)
 $studentData = $studentData ?? [];
 $teacherData = $teacherData ?? [];
 
@@ -45,10 +45,6 @@ $teacherData = $teacherData ?? [];
                 <input id="email" type="email" name="email" class="form-control" value="<?= htmlspecialchars($userModel->email ?? '') ?>" required>
             </div>
 
-            <?php // extra student/teacher fields - show if record exists or role matches ?>
-            <?php $student = \App\Models\Student::findByUserId($userModel->id); ?>
-            <?php $teacher = \App\Models\Teacher::findByUserId($userModel->id); ?>
-
 
             <?php if ($student !== null || ($userModel->role ?? '') === 'student'): ?>
                 <div class="mb-3">
@@ -69,13 +65,11 @@ $teacherData = $teacherData ?? [];
                 </div>
             <?php endif; ?>
 
-                <div class="mb-3">
-                    <label class="form-label">Rola</label>
-                    <input type="text" class="form-control" value="<?= htmlspecialchars($userModel->role ?? '') ?>" disabled>
-                </div>
+            <div class="mb-3">
+                <label class="form-label">Rola</label>
+                <input type="text" class="form-control" value="<?= htmlspecialchars($userModel->role ?? '') ?>" disabled>
+            </div>
 
-
-            <hr>
             <p class="mb-2">Zmena hesla (nepovinné)</p>
             <div class="mb-3">
                 <label class="form-label" for="password">Nové heslo</label>

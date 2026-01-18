@@ -5,7 +5,6 @@ namespace App\Models;
 use Framework\Core\Model;
 class User extends Model
 {
-    // Optional: explicitly set table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'users';
     protected static array $columnsMap = [
         'first_name' => 'firstName',
@@ -22,11 +21,6 @@ class User extends Model
     public ?string $role = null;
     public ?string $createdAt = null;
 
-    /**
-     * Get the user's role.
-     *
-     * @return string|null Role name (e.g. 'admin', 'teacher', 'student') or null if not set.
-     */
     public function getRole(): ?string
     {
         return $this->role;
@@ -39,43 +33,23 @@ class User extends Model
     public function getName(): string {
         return $this->firstName . ' ' . $this->lastName;
     }
-    // -------------------- convenience helpers --------------------
-    /**
-     * Find user by primary id (wrapper around Model::getOne)
-     * @param int $id
-     * @return static|null
-     */
+
     public static function findById(int $id): ?static
     {
         return static::getOne($id);
     }
 
-    /**
-     * Convenience: return all users
-     * @return static[]
-     */
     public static function getAllUsers(): array
     {
         return static::getAll();
     }
 
-    /**
-     * Find user by email
-     * @param string $email
-     * @return static|null
-     */
     public static function findByEmail(string $email): ?static
     {
         $items = static::getAll('email = ?', [$email], null, 1);
         return $items[0] ?? null;
     }
-    /**
-     * Validate a name (first name or last name).
-     * Accepts null/empty and returns appropriate error(s).
-     * @param string|null $value
-     * @param string $fieldName
-     * @return string[] array of error messages
-     */
+
     protected static function validateName(?string $value, string $fieldName): array
     {
         $errors = [];
@@ -94,12 +68,6 @@ class User extends Model
         return $errors;
     }
 
-    /**
-     * Validate email and uniqueness. Returns array of error messages.
-     * @param string|null $email
-     * @param int|null $currentUserId when provided, allow that user to keep the same email
-     * @return string[]
-     */
     protected static function validateEmail(?string $email, ?int $currentUserId = null): array
     {
         $errors = [];
@@ -122,13 +90,6 @@ class User extends Model
         return $errors;
     }
 
-    /**
-     * Validate password and confirm. If $required=true then password must be present.
-     * @param string|null $password
-     * @param string|null $confirm
-     * @param bool $required
-     * @return string[]
-     */
     protected static function validatePassword(?string $password, ?string $confirm, bool $required = false): array
     {
         $errors = [];
@@ -148,99 +109,84 @@ class User extends Model
                 $errors[] = 'Heslo musí mať aspoň 6 znakov.';
             }
         }
-
         return $errors;
     }
 
-    /**
-     * Update profile fields from an associative array and save. Returns array of errors (empty on success).
-     * Expected keys: firstName, lastName, email, password, passwordConfirm
-     * @param array $data
-     * @return array<string>
-     */
     public function updateProfile(array $data): array
     {
-        $errors = [];
+        $result = static::validateProfileData($data, $this->id, false);
 
-        $firstName = isset($data['firstName']) ? trim((string)$data['firstName']) : null;
-        $lastName = isset($data['lastName']) ? trim((string)$data['lastName']) : null;
-        $email = isset($data['email']) ? trim((string)$data['email']) : null;
-        $password = $data['password'] ?? null;
-        $passwordConfirm = $data['passwordConfirm'] ?? null;
-
-        // validate name(s)
-        $errors = array_merge($errors, static::validateName($firstName, 'Meno'));
-        $errors = array_merge($errors, static::validateName($lastName, 'Priezvisko'));
-
-        // validate email (allow keeping current email)
-        $errors = array_merge($errors, static::validateEmail($email, $this->id ?? null));
-
-        // validate password only if provided
-        $errors = array_merge($errors, static::validatePassword($password, $passwordConfirm, false));
-
-        if (!empty($errors)) {
-            return $errors;
+        if (!empty($result['errors'])) {
+            return $result['errors'];
         }
 
-        // apply
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
-
-        if ($password !== null && $password !== '') {
-            $this->passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        }
-
+        $this->applyProfileData($result);
         $this->save();
 
         return [];
     }
 
-    /**
-     * Create a new user from provided data. Returns array with keys:
-     * - 'user' => created User instance or null on failure
-     * - 'errors' => array of validation error messages
-     * Expected keys in $data: firstName, lastName, email, password, passwordConfirm, role
-     * @param array $data
-     * @return array{user:?static, errors:array}
-     */
     public static function create(array $data): array
     {
-        $errors = [];
+        $result = static::validateProfileData($data, null, true);
 
-        $firstName = isset($data['firstName']) ? trim((string)$data['firstName']) : '';
-        $lastName = isset($data['lastName']) ? trim((string)$data['lastName']) : '';
-        $email = isset($data['email']) ? trim((string)$data['email']) : '';
-        $password = $data['password'] ?? null;
-        $passwordConfirm = $data['passwordConfirm'] ?? null;
-        $role = isset($data['role']) ? trim((string)$data['role']) : 'student';
-
-        // validate names
-        $errors = array_merge($errors, static::validateName($firstName, 'Meno'));
-        $errors = array_merge($errors, static::validateName($lastName, 'Priezvisko'));
-
-        // validate email (for create, no current user id)
-        $errors = array_merge($errors, static::validateEmail($email, null));
-
-        // password required on create
-        $errors = array_merge($errors, static::validatePassword($password, $passwordConfirm, true));
-
-        if (!empty($errors)) {
-            return ['user' => null, 'errors' => $errors];
+        if (!empty($result['errors'])) {
+            return ['user' => null, 'errors' => $result['errors']];
         }
 
         $user = new static();
-        $user->firstName = $firstName;
-        $user->lastName = $lastName;
-        $user->email = $email;
-        $user->passwordHash = password_hash($password, PASSWORD_DEFAULT);
-        $user->role = $role !== '' ? $role : 'student';
+        $user->applyProfileData($result);
+        $user->role = trim((string)($data['role'] ?? 'student')) ?: 'student';
 
         try {
             $user->save();
             return ['user' => $user, 'errors' => []];
         } catch (\Throwable $e) {
-            return ['user' => null, 'errors' => ['Chyba pri vytváraní používateľa: ' . $e->getMessage()]];
+            return [
+                'user' => null,
+                'errors' => ['Chyba pri vytváraní používateľa: ' . $e->getMessage()],
+            ];
         }
+    }
+
+    private function applyProfileData(array $data): void
+    {
+        $this->firstName = $data['firstName'];
+        $this->lastName  = $data['lastName'];
+        $this->email     = $data['email'];
+
+        if (!empty($data['password'])) {
+            $this->passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+    }
+
+    private static function validateProfileData(
+        array $data,
+        ?int $currentUserId,
+        bool $passwordRequired
+    ): array {
+        $errors = [];
+
+        $firstName = isset($data['firstName']) ? trim((string)$data['firstName']) : '';
+        $lastName  = isset($data['lastName'])  ? trim((string)$data['lastName'])  : '';
+        $email     = isset($data['email'])     ? trim((string)$data['email'])     : '';
+        $password  = $data['password'] ?? null;
+        $confirm   = $data['passwordConfirm'] ?? null;
+
+        $errors = array_merge($errors, static::validateName($firstName, 'Meno'));
+        $errors = array_merge($errors, static::validateName($lastName, 'Priezvisko'));
+        $errors = array_merge($errors, static::validateEmail($email, $currentUserId));
+        $errors = array_merge(
+            $errors,
+            static::validatePassword($password, $confirm, $passwordRequired)
+        );
+
+        return [
+            'errors'    => $errors,
+            'firstName' => $firstName,
+            'lastName'  => $lastName,
+            'email'     => $email,
+            'password'  => $password,
+        ];
     }
 }

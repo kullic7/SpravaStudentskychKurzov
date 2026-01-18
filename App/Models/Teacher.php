@@ -3,16 +3,6 @@
 namespace App\Models;
 
 use Framework\Core\Model;
-
-/**
- * Class Teacher
- *
- * Model for the `teachers` table.
- * Columns (DB / property):
- * - id -> id
- * - user_id -> userId
- * - department -> department
- */
 class Teacher extends Model
 {
     protected static ?string $tableName = 'teachers';
@@ -24,11 +14,6 @@ class Teacher extends Model
     public ?int $userId = null;
     public ?string $department = null;
 
-    /**
-     * Convenience: load the related User record (simple DB lookup).
-     * Returns null if user_id is not set or user not found.
-     * @return User|null
-     */
     public function getUser(): ?User
     {
         if ($this->userId === null) {
@@ -37,68 +22,27 @@ class Teacher extends Model
         return User::getOne($this->userId);
     }
 
-    /**
-     * Find teacher by user id
-     * @param int $userId
-     * @return static|null
-     */
     public static function findByUserId(int $userId): ?static
     {
         $items = static::getAll('user_id = ?', [$userId], null, 1);
         return $items[0] ?? null;
     }
 
-    /**
-     * Wrapper for retrieving all teachers.
-     * @return static[]
-     */
     public static function getAllTeachers(): array
     {
         return static::getAll();
     }
 
-    /**
-     * Wrapper to get a single teacher by id (alias for Model::getOne)
-     * @param int $id
-     * @return static|null
-     */
     public static function findById(int $id): ?static
     {
         return static::getOne($id);
     }
 
-    /**
-     * Update teacher fields from provided data and save.
-     * Expected keys: 'department'.
-     * Returns array of errors (empty on success).
-     * @param array $data
-     * @return array<string>
-     */
     public function update(array $data): array
     {
         $errors = [];
 
-        $department = isset($data['department']) ? trim((string)$data['department']) : null;
-
-        if ($department !== null) {
-            $dep = $department === '' ? null : $department;
-            if ($dep !== null) {
-                // length must be less than 255 characters
-                if (mb_strlen($dep) >= 255) {
-                    $errors[] = 'Oddelenie musí byť kratšie ako 255 znakov.';
-                }
-                // allow only letters (Unicode) and hyphen
-                if (!preg_match('/^[\p{L}\- ]+$/u', $dep)) {
-                    $errors[] = 'Oddelenie môže obsahovať len písmená, medzeru a pomlčku.';
-                }
-                // set value only if no related errors
-                if (empty($errors)) {
-                    $this->department = $dep;
-                }
-            } else {
-                $this->department = null;
-            }
-        }
+        $this->validateDepartment($data['department'] ?? null, $errors);
 
         if (!empty($errors)) {
             return $errors;
@@ -108,14 +52,32 @@ class Teacher extends Model
         return [];
     }
 
-    /**
-     * Create a teacher associated with a user id.
-     * Returns ['teacher' => Teacher|null, 'errors' => array].
-     * Expected keys: department
-     * @param int $userId
-     * @param array $data
-     * @return array{teacher:?static, errors:array}
-     */
+
+    private function validateDepartment(?string $input, array &$errors): void
+    {
+        if ($input === null) {
+            return;
+        }
+
+        $dep = trim($input);
+        if ($dep === '') {
+            $this->department = null;
+            return;
+        }
+
+        if (mb_strlen($dep) >= 255) {
+            $errors[] = 'Oddelenie musí byť kratšie ako 255 znakov.';
+            return;
+        }
+
+        if (!preg_match('/^[\p{L}\- ]+$/u', $dep)) {
+            $errors[] = 'Oddelenie môže obsahovať len písmená, medzeru a pomlčku.';
+            return;
+        }
+
+        $this->department = $dep;
+    }
+
     public static function create(int $userId, array $data): array
     {
         $teacher = new static();

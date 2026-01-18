@@ -3,7 +3,6 @@
 /** @var array|null $errors */
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
-/** @var \Framework\Auth\AppUser $user */
 
 $view->setLayout('home');
 $title = 'Môj profil';
@@ -23,9 +22,7 @@ $title = 'Môj profil';
             </div>
         <?php endif; ?>
 
-        <!-- AJAX alerts will be injected here -->
         <div id="profileAlert"></div>
-
         <form id="profileForm" method="post" action="<?= htmlspecialchars($link->url('auth.updateProfile')) ?>">
             <div class="mb-3">
                 <label class="form-label" for="firstName">Meno</label>
@@ -68,5 +65,4 @@ $title = 'Môj profil';
     </div>
 </div>
 
-<!-- Load shared frontend scripts -->
 <script src="<?= $link->asset('js/ajaxProfileScripts.js') ?>"></script>

@@ -27,7 +27,6 @@ $view->setLayout('auth');
         <button type="submit" name="submit" class="btn btn-primary w-100 auth-btn mt-3">
             Prihlásiť sa
         </button>
-
     </div>
 </form>
 

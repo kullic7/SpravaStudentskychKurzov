@@ -19,11 +19,6 @@ class Student extends Model
     public ?string $studentNumber = null;
     public ?int $year = null;
 
-    /**
-     * Convenience: load the related User record (simple DB lookup).
-     * Returns null if user_id is not set or user not found.
-     * @return User|null
-     */
     public function getUser(): ?User
     {
         if ($this->userId === null) {
@@ -32,93 +27,29 @@ class Student extends Model
         return User::getOne($this->userId);
     }
 
-    /**
-     * Wrapper for retrieving all students.
-     * @return static[]
-     */
     public static function getAllStudents(): array
     {
         return static::getAll();
     }
 
-    /**
-     * Wrapper to get a single student by id (alias for Model::getOne)
-     * @param int $id
-     * @return static|null
-     */
     public static function findById(int $id): ?static
     {
         return static::getOne($id);
     }
 
-    /**
-     * Find a student record by the associated user id.
-     * @param int $userId
-     * @return static|null
-     */
     public static function findByUserId(int $userId): ?static
     {
         $items = static::getAll('user_id = ?', [$userId], null, 1);
         return $items[0] ?? null;
     }
 
-    /**
-     * Update student fields from provided data and save.
-     * Expected keys: 'studentNumber', 'year'.
-     * Returns array of errors (empty on success).
-     * @param array $data
-     * @return array<string>
-     */
+
     public function update(array $data): array
     {
         $errors = [];
 
-        $studentNumber = isset($data['studentNumber']) ? trim((string)$data['studentNumber']) : null;
-        $year = $data['year'] ?? null;
-
-        // Validate and set student number if provided (empty string => null)
-        if ($studentNumber !== null) {
-            $sn = $studentNumber === '' ? null : strtoupper($studentNumber);
-
-            if ($sn !== null) {
-                // must match format S1234 (S + 4 digits)
-                if (!preg_match('/^S\d{4}$/', $sn)) {
-                    $errors[] = "Študijné číslo musí mať formát 'S1234' (S následované 4 číslicami).";
-                } else {
-                    // uniqueness check: exclude current record when updating
-                    if ($this->id !== null) {
-                        $exists = static::getCount('student_number = ? AND id != ?', [$sn, $this->id]);
-                    } else {
-                        $exists = static::getCount('student_number = ?', [$sn]);
-                    }
-                    if ($exists > 0) {
-                        $errors[] = 'Toto študijné číslo už používa iný študent.';
-                    } else {
-                        $this->studentNumber = $sn;
-                    }
-                }
-            } else {
-                $this->studentNumber = null;
-            }
-        }
-
-        // Year handling
-        if ($year !== null && $year !== '') {
-            // ensure year is numeric (digits only)
-            $yearStr = (string)$year;
-            if (!preg_match('/^\d+$/', $yearStr)) {
-                $errors[] = 'Ročník musí byť číslo.';
-            } else {
-                $yearInt = (int)$yearStr;
-                if ($yearInt < 1) {
-                    $errors[] = 'Ročník musí byť kladné číslo.';
-                } else {
-                    $this->year = $yearInt;
-                }
-            }
-        } else {
-            $this->year = null;
-        }
+        $this->validateStudentNumber($data['studentNumber'] ?? null, $errors);
+        $this->validateYear($data['year'] ?? null, $errors);
 
         if (!empty($errors)) {
             return $errors;
@@ -128,6 +59,56 @@ class Student extends Model
         return [];
     }
 
+    private function validateStudentNumber(?string $input, array &$errors): void
+    {
+        if ($input === null) {
+            return;
+        }
+
+        $sn = trim((string)$input);
+        if ($sn === '') {
+            $this->studentNumber = null;
+            return;
+        }
+
+        $sn = strtoupper($sn);
+
+        if (!preg_match('/^S\d{4}$/', $sn)) {
+            $errors[] = "Študijné číslo musí mať formát 'S1234' (S + 4 číslice).";
+            return;
+        }
+
+        $exists = $this->id !== null
+            ? static::getCount('student_number = ? AND id != ?', [$sn, $this->id])
+            : static::getCount('student_number = ?', [$sn]);
+
+        if ($exists > 0) {
+            $errors[] = 'Toto študijné číslo už používa iný študent.';
+            return;
+        }
+
+        $this->studentNumber = $sn;
+    }
+    private function validateYear($year, array &$errors): void
+    {
+        if ($year === null || $year === '') {
+            $this->year = null;
+            return;
+        }
+
+        if (!preg_match('/^\d+$/', (string)$year)) {
+            $errors[] = 'Ročník musí byť číslo.';
+            return;
+        }
+
+        $yearInt = (int)$year;
+        if ($yearInt < 1) {
+            $errors[] = 'Ročník musí byť kladné číslo.';
+            return;
+        }
+
+        $this->year = $yearInt;
+    }
     /**
      * Create a student associated with a user id.
      * Returns ['student' => Student|null, 'errors' => array].
@@ -148,6 +129,4 @@ class Student extends Model
 
         return ['student' => $student, 'errors' => []];
     }
-
-
 }

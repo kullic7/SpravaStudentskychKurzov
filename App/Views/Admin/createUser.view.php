@@ -5,16 +5,13 @@
 /** @var \Framework\Support\LinkGenerator $link */
 
 $view->setLayout('home');
-
-
-function pv(string $key, $default = ''): string
-{
-    global $posted;
-    if ($posted !== null && array_key_exists($key, $posted)) {
-        return htmlspecialchars((string)$posted[$key]);
-    }
-    return htmlspecialchars((string)$default);
-}
+$pv = function (string $key, $default = '') use ($posted): string {
+    return htmlspecialchars(
+            (string)($posted[$key] ?? $default),
+            ENT_QUOTES,
+            'UTF-8'
+    );
+};
 ?>
 
 <div class="card mx-auto" style="max-width:800px;">
@@ -67,8 +64,6 @@ function pv(string $key, $default = ''): string
                     <option value="teacher" <?= pv('role') === 'teacher' ? 'selected' : '' ?>>Teacher</option>
                 </select>
             </div>
-
-            <hr>
 
             <div id="studentFields" style="display:none;">
                 <div class="row">

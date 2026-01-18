@@ -18,7 +18,6 @@ class LoggedUser implements IIdentity
         return $this->id;
     }
 
-
     public function getName(): string {
         return $this->firstName . ' ' . $this->lastName;
     }

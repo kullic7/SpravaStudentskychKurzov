@@ -1,12 +1,9 @@
 <?php
 /** @var array $users */
-/** @var array $students */
-/** @var array $teachers */
+/** @var array $studentsByUser */
+/** @var array $teachersByUser */
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
-
-use App\Models\Student;
-use App\Models\Teacher;
 
 $view->setLayout('home');
 
@@ -36,35 +33,6 @@ $title = 'Používatelia';
                     </thead>
                     <tbody>
                         <?php
-                        // Build lookup maps so we don't do DB calls inside the loop
-                        $studentsByUser = [];
-                        if (!empty($students) && is_array($students)) {
-                            foreach ($students as $s) {
-                                // handle possible property names for the foreign key
-                                $uid = $s->userId ?? $s->user_id ?? $s->user ?? null;
-                                if ($uid === null) {
-                                    // fallback: maybe student record uses the same id as user (rare) -> skip if not present
-                                    $uid = $s->userId ?? $s->user_id ?? $s->id ?? null;
-                                }
-                                if ($uid !== null) {
-                                    $studentsByUser[$uid] = $s;
-                                }
-                            }
-                        }
-
-                        $teachersByUser = [];
-                        if (!empty($teachers) && is_array($teachers)) {
-                            foreach ($teachers as $t) {
-                                $uid = $t->userId ?? $t->user_id ?? $t->user ?? null;
-                                if ($uid === null) {
-                                    $uid = $t->userId ?? $t->user_id ?? $t->id ?? null;
-                                }
-                                if ($uid !== null) {
-                                    $teachersByUser[$uid] = $t;
-                                }
-                            }
-                        }
-
                         foreach ($users as $user):
                             $firstName = htmlspecialchars($user->firstName ?? '-');
                             $lastName = htmlspecialchars($user->lastName ?? '-');
