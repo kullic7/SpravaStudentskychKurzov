@@ -1,6 +1,6 @@
-/* Inputs */
+
 .auth-input {
-    transition: all 0.25s ease-in-out;
+    transition: all 0.5s ease-in-out;
     border-radius: 10px;
 }
 
@@ -9,10 +9,8 @@
     box-shadow: 0 0 8px rgba(108, 99, 255, 0.4);
 }
 
-/* Button */
 .auth-btn {
     background: linear-gradient(to right, #4e9af1, #4169e1);
-    border: none;
     padding: 10px;
     font-weight: 500;
     border-radius: 10px;

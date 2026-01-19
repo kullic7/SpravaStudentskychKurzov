@@ -1,14 +1,8 @@
-/* =========================================
-   1. Global background gradient
-========================================= */
+
 .main-bg {
     min-height: 100vh;
-    margin: 0;
-    padding: 0;
     background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
     font-family: 'Poppins', sans-serif;
-    position: relative;
-    overflow-x: hidden;
 }
 @media (max-width: 576px) {
 

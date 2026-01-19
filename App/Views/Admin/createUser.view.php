@@ -5,13 +5,14 @@
 /** @var \Framework\Support\LinkGenerator $link */
 
 $view->setLayout('home');
-$pv = function (string $key, $default = '') use ($posted): string {
-    return htmlspecialchars(
-            (string)($posted[$key] ?? $default),
-            ENT_QUOTES,
-            'UTF-8'
-    );
-};
+function pv(string $key, $default = ''): string
+{
+    global $posted;
+    if ($posted !== null && array_key_exists($key, $posted)) {
+        return htmlspecialchars((string)$posted[$key]);
+    }
+    return htmlspecialchars((string)$default);
+}
 ?>
 
 <div class="card mx-auto" style="max-width:800px;">
