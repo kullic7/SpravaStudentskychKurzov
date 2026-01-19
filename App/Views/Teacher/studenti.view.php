@@ -11,12 +11,20 @@ $title = 'Študenti';
 <div class="card">
     <div class="card-body">
         <h1 class="h3 mb-4">Študenti učiteľa <?= htmlspecialchars($teacher?->getUser()?->getName() ?? ($teacher?->department ?? '-')) ?></h1>
-
+        <div class="mb-3">
+            <input
+                    type="text"
+                    id="studentSearch"
+                    class="form-control"
+                    placeholder="Vyhľadať študenta (meno, priezvisko, email, štud. číslo...)"
+                    onkeyup="filterStudents()"
+            >
+        </div>
         <?php if (empty($students)): ?>
             <p>Žiadni študenti nenájdení.</p>
         <?php else: ?>
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped" id="studentsTable">
                     <thead>
                         <tr>
                             <th>Meno</th>
@@ -81,4 +89,4 @@ $title = 'Študenti';
     </div>
 </div>
 <script src="<?= $link->asset('js/ajaxEditGradeScript.js') ?>"></script>
-
+<script src="<?= $link->asset('js/sortStudentsScript.js') ?>"></script>
