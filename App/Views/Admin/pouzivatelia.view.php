@@ -17,14 +17,29 @@ $title = 'Používatelia';
         <?php if (empty($users)): ?>
             <p>Žiadni používatelia neboli nájdení.</p>
         <?php else: ?>
+            <div class="mt-3 mb-3">
+                <input
+                        type="text"
+                        id="userSearch"
+                        class="form-control"
+                        placeholder="Vyhľadať používateľa (meno, priezvisko, email, rola...)"
+                        onkeyup="filterUsers()"
+                >
+            </div>
             <div class="table-responsive">
                 <table class="table table-striped" id="usersTable">
                     <thead>
                         <tr>
-                            <th>Meno</th>
-                            <th>Priezvisko</th>
+                            <th style="cursor:pointer;" onclick="sortTableByColumn(0)">
+                                Meno
+                            </th>
+                            <th style="cursor:pointer;" onclick="sortTableByColumn(1)">
+                                Priezvisko
+                            </th>
                             <th>Email</th>
-                            <th>Rola</th>
+                            <th style="cursor:pointer;" onclick="sortTableByColumn(3)">
+                                Rola
+                            </th>
                             <th>Ročník</th>
                             <th>Štud. číslo</th>
                             <th>Oddelenie</th>
@@ -72,3 +87,4 @@ $title = 'Používatelia';
         <?php endif; ?>
     </div>
 </div>
+<script src="<?= $link->asset('js/sortUsersScript.js') ?>"></script>
