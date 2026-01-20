@@ -102,6 +102,7 @@ class AuthController extends BaseController
             'firstName' => trim((string)$request->post('firstName')),
             'lastName' => trim((string)$request->post('lastName')),
             'email' => trim((string)$request->post('email')),
+            'passwordOld' => $request->post('passwordOld'),
             'password' => $request->post('password'),
             'passwordConfirm' => $request->post('passwordConfirm'),
         ];
@@ -118,9 +119,7 @@ class AuthController extends BaseController
 
         $this->refreshSessionIdentity($user);
 
-        // After save, respond according to request type
         if ($request->isAjax()) {
-            // Optionally, return updated user data (avoid sensitive fields)
             return new JsonResponse([
                 'success' => true,
                 'message' => 'Profil uložený',
@@ -128,11 +127,9 @@ class AuthController extends BaseController
                     'firstName' => $user->firstName,
                     'lastName' => $user->lastName,
                     'email' => $user->email,
-                    'role' => $user->role,
                 ]
             ]);
         }
-
         return $this->redirect($this->url('auth.profile'));
     }
 

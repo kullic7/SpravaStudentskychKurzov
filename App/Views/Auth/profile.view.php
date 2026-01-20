@@ -51,6 +51,10 @@ $title = 'Môj profil';
             <hr>
             <p class="mb-2">Zmena hesla (nepovinné)</p>
             <div class="mb-3">
+                <label class="form-label" for="password">Staré heslo</label>
+                <input id="passwordOld" type="password" name="passwordOld" class="form-control">
+            </div>
+            <div class="mb-3">
                 <label class="form-label" for="password">Nové heslo</label>
                 <input id="password" type="password" name="password" class="form-control">
             </div>

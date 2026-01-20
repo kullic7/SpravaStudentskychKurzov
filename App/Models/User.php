@@ -90,7 +90,7 @@ class User extends Model
         return $errors;
     }
 
-    protected static function validatePassword(?string $password, ?string $confirm, bool $required = false): array
+    protected static function validatePassword(?string $passwordOld, ?string $password, ?string $confirm, bool $required = false): array
     {
         $errors = [];
         $pw = $password === null ? '' : (string)$password;
@@ -114,7 +114,8 @@ class User extends Model
 
     public function updateProfile(array $data): array
     {
-        $result = static::validateProfileData($data, $this->id, false);
+        // pass current password hash so we can verify old password when changing
+        $result = static::validateProfileData($data, $this->id, false, $this->passwordHash);
 
         if (!empty($result['errors'])) {
             return $result['errors'];
@@ -128,7 +129,8 @@ class User extends Model
 
     public static function create(array $data): array
     {
-        $result = static::validateProfileData($data, null, true);
+        // creation: no current password hash available
+        $result = static::validateProfileData($data, null, true, null);
 
         if (!empty($result['errors'])) {
             return ['user' => null, 'errors' => $result['errors']];
@@ -163,23 +165,34 @@ class User extends Model
     private static function validateProfileData(
         array $data,
         ?int $currentUserId,
-        bool $passwordRequired
+        bool $passwordRequired,
+        ?string $currentPasswordHash = null
     ): array {
         $errors = [];
 
         $firstName = isset($data['firstName']) ? trim((string)$data['firstName']) : '';
         $lastName  = isset($data['lastName'])  ? trim((string)$data['lastName'])  : '';
         $email     = isset($data['email'])     ? trim((string)$data['email'])     : '';
+        $oldPassword = $data['passwordOld'] ?? null;
         $password  = $data['password'] ?? null;
         $confirm   = $data['passwordConfirm'] ?? null;
+
 
         $errors = array_merge($errors, static::validateName($firstName, 'Meno'));
         $errors = array_merge($errors, static::validateName($lastName, 'Priezvisko'));
         $errors = array_merge($errors, static::validateEmail($email, $currentUserId));
-        $errors = array_merge(
-            $errors,
-            static::validatePassword($password, $confirm, $passwordRequired)
-        );
+        $errors = array_merge($errors, static::validatePassword($oldPassword, $password, $confirm, $passwordRequired));
+
+        $pw = $password === null ? '' : (string)$password;
+        if ($pw !== '') {
+            if ($currentPasswordHash === null) {
+                $errors[] = 'Nie je možné overiť staré heslo.';
+            } else {
+                if (empty($oldPassword) || !password_verify((string)$oldPassword, $currentPasswordHash)) {
+                    $errors[] = 'Staré heslo je nesprávne.';
+                }
+            }
+        }
 
         return [
             'errors'    => $errors,

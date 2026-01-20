@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     'success',
                     escapeHtml(data.message || 'Profil uložený')
                 );
+
+                form.reset();
                 return;
             }
 
