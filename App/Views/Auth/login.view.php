@@ -3,7 +3,9 @@
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \Framework\Support\View $view */
 
-$view->setLayout('auth');
+use App\Configuration;
+
+$view->setLayout(Configuration::AUTH_LAYOUT);
 ?>
 <form action="<?= htmlspecialchars($link->url('auth.login')) ?>" method="post">
     <div class="auth-content">

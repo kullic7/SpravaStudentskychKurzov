@@ -44,7 +44,7 @@ class Configuration
      * <ROOT_LAYOUT>.layout.view.php.
      */
     public const AUTH_LAYOUT = 'auth';
-
+    public const HOME_LAYOUT = 'home';
     /**
      * Flag to determine whether to display all SQL queries after the application output for debugging purposes.
      */

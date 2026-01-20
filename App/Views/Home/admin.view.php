@@ -2,7 +2,10 @@
 /** @var \Framework\Auth\AppUser $user */
 /** @var \Framework\Support\LinkGenerator $link */
 /** @var \Framework\Support\View $view */
-$view->setLayout('home');
+
+use App\Configuration;
+
+$view->setLayout(Configuration::HOME_LAYOUT);
 ?>
 
 <div class="mt-5 pt-4 text-center">

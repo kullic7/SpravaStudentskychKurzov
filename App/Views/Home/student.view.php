@@ -2,7 +2,9 @@
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Auth\AppUser $user */
 // Set the layout to the main root layout
-$view->setLayout('home');
+use App\Configuration;
+
+$view->setLayout(Configuration::HOME_LAYOUT);
 
 $totalCourses = $totalCourses ?? 0;
 $pendingEnrollments = $pendingEnrollments ?? 0;

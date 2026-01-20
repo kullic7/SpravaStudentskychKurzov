@@ -5,7 +5,9 @@
 /** @var int $studentsCount */
 /** @var array $teacherCourses */
 
-$view->setLayout('home');
+use App\Configuration;
+
+$view->setLayout(Configuration::HOME_LAYOUT);
 
 $totalCourses = $totalCourses ?? 0;
 $studentsCount = $studentsCount ?? 0;

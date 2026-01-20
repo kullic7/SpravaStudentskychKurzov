@@ -16,7 +16,6 @@ use App\Models\User;
 
 class AdminController extends BaseController
 {
-    // ZOBRAZÍ LOGIN FORM
     public function index(Request $request): Response
     {
         return $this->html();

@@ -6,7 +6,9 @@
 /** @var \Framework\Support\View $view */
 /** @var \Framework\Support\LinkGenerator $link */
 
-$view->setLayout('home');
+use App\Configuration;
+
+$view->setLayout(Configuration::HOME_LAYOUT);
 $title = 'Upraviť kurz';
 
 // helper to get posted value or course property
