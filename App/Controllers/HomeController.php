@@ -18,7 +18,7 @@ class HomeController extends BaseController
     public function index(Request $request): Response
     {
         $user = $this->app->getAuthenticator()->getUser();
-        if (!$user) {
+        if (!$user || !$user->isLoggedIn()) {
             return $this->redirect('?c=auth&a=login');
         }
 
