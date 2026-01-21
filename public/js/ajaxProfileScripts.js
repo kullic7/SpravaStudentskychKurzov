@@ -18,6 +18,18 @@ document.addEventListener('DOMContentLoaded', () => {
         alertBox.innerHTML = `<div class="alert alert-${type}">${html}</div>`;
     };
 
+    const setIfExists = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value ?? '';
+    };
+
+    const clearPasswordFields = () => {
+        ['passwordOld', 'password', 'passwordConfirm'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+    };
+
     form.addEventListener('submit', async e => {
         e.preventDefault();
         alertBox.innerHTML = '';
@@ -38,7 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     escapeHtml(data.message || 'Profil uložený')
                 );
 
-                form.reset();
+                // Update visible fields with server returned user object (if provided)
+                if (data.user) {
+                    setIfExists('firstName', data.user.firstName ?? data.user.first_name ?? '');
+                    setIfExists('lastName', data.user.lastName ?? data.user.last_name ?? '');
+                    setIfExists('email', data.user.email ?? '');
+                }
+
+                // Clear only password inputs (so new password is not shown)
+                clearPasswordFields();
+
                 return;
             }
 
