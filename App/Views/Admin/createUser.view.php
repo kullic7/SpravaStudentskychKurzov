@@ -7,6 +7,7 @@
 use App\Configuration;
 
 $view->setLayout(Configuration::HOME_LAYOUT);
+//chat gpt
 function pv(string $key, $default = ''): string
 {
     global $posted;

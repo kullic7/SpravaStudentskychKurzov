@@ -1,20 +1,8 @@
 <?php
 
 namespace App\Models;
-
 use Framework\Core\Model;
 
-/**
- * Class Enrollment
- *
- * Model for the `enrollments` table.
- * Columns (DB / property):
- * - id -> id
- * - student_id -> studentId
- * - course_id -> courseId
- * - grade -> grade
- * - status -> status
- */
 class Enrollment extends Model
 {
     public const STATUS_NOT_APPROVED = 'not_approved';
@@ -23,17 +11,12 @@ class Enrollment extends Model
         'student_id' => 'studentId',
         'course_id'  => 'courseId',
     ];
-
     public ?int $id = null;
     public ?int $studentId = null;
     public ?int $courseId = null;
     public ?string $grade = null;
     public ?string $status = null;
 
-    /**
-     * Load related Student record
-     * @return Student|null
-     */
     public function getStudent(): ?Student
     {
         if ($this->studentId === null) {
@@ -42,10 +25,6 @@ class Enrollment extends Model
         return Student::getOne($this->studentId);
     }
 
-    /**
-     * Load related Course record
-     * @return Course|null
-     */
     public function getCourse(): ?Course
     {
         if ($this->courseId === null) {
@@ -53,7 +32,6 @@ class Enrollment extends Model
         }
         return Course::getOne($this->courseId);
     }
-
 
     public static function getPendingEnrollments(): array
     {
@@ -65,8 +43,11 @@ class Enrollment extends Model
 
     public static function getPendingCount(?array $statuses = null): int
     {
-        $statuses = $statuses ?? ['not_approved', 'not approved', 'not aproved', 'pending'];
-        if (empty($statuses)) return 0;
+        $statuses = $statuses ?? [self::STATUS_NOT_APPROVED];
+
+        if (empty($statuses)) {
+            return 0;
+        }
         $placeholders = implode(', ', array_fill(0, count($statuses), '?'));
         return static::getCount("status IN ($placeholders)", $statuses);
     }
@@ -189,7 +170,7 @@ class Enrollment extends Model
 
         return null;
     }
-
+    //chatgpt
     public static function averageGradeByCourse(int $courseId): ?float
     {
         $items = static::getAll(
@@ -213,11 +194,6 @@ class Enrollment extends Model
         return $count > 0 ? round($sum / $count, 2) : null;
     }
 
-    /**
-     * Approve an enrollment by id (set status = 'approved'). Returns true if updated, false otherwise.
-     * @param int $id
-     * @return bool
-     */
     public static function approveById(int $id): bool
     {
         $en = static::getOne($id);
@@ -227,13 +203,6 @@ class Enrollment extends Model
         return true;
     }
 
-    /**
-     * Validate enrollment grade update input.
-     *
-     * @param int $id
-     * @param string|null $grade
-     * @return array{enrollment:?static, grade:?string, errors:string[], message:?string}
-     */
     protected static function validateGrade(int $id, ?string $grade): array
     {
         if ($id <= 0) {

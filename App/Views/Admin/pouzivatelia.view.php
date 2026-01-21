@@ -56,7 +56,6 @@ $title = 'Používatelia';
                             $email = htmlspecialchars($user->email ?? '-');
                             $role = htmlspecialchars($user->role ?? '-');
 
-                            // load from maps
                             $student = $studentsByUser[$user->id] ?? null;
                             $teacher = $teachersByUser[$user->id] ?? null;
                         ?>

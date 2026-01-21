@@ -14,7 +14,6 @@ use App\Models\Teacher;
 
 class AuthController extends BaseController
 {
-    // ZOBRAZÍ LOGIN FORM
     public function index(Request $request): Response
     {
         return $this->html([], "login");
@@ -27,14 +26,12 @@ class AuthController extends BaseController
             $logged = $this->app->getAuthenticator()->login($request->value('email'), $request->value('password'));
             if ($logged) {
                 return $this->redirect($this->url("home.index"));
-
             }
         }
 
         return $this->html([
-            'error' => $logged === false ? 'Bad username or password' : null
+            'error' => $logged === false ? 'Zle meno alebo heslo' : null
         ], 'login');
-
     }
 
     public function logout(Request $request): Response
@@ -49,7 +46,6 @@ class AuthController extends BaseController
             }
         }
 
-        // Redirect to the login page (show login form)
         return $this->redirect($this->url('auth.index'));
     }
 
@@ -74,14 +70,11 @@ class AuthController extends BaseController
 
         return $this->html(['userModel' => $user], 'profile');
     }
-
-    // SPRACOVANIE UPRAVY PROFILE
+    //chat gpt
     public function updateProfile(Request $request): Response
     {
-        // Ensure user is logged in
         $appUser = $this->app->getAuthenticator()->getUser();
         if (!$appUser->isLoggedIn()) {
-            // For AJAX request return JSON error
             if ($request->isAjax()) {
                 return new JsonResponse(['success' => false, 'errors' => ['Not authenticated']]);
             }
@@ -97,7 +90,6 @@ class AuthController extends BaseController
             return $this->redirect($this->url('auth.index'));
         }
 
-        // Build data array from submitted values
         $data = [
             'firstName' => trim((string)$request->post('firstName')),
             'lastName' => trim((string)$request->post('lastName')),
@@ -107,7 +99,6 @@ class AuthController extends BaseController
             'passwordConfirm' => $request->post('passwordConfirm'),
         ];
 
-        // Delegate validation and saving to the model helper
         $errors = $user->updateProfile($data, false);
 
         if (!empty($errors)) {
@@ -133,7 +124,6 @@ class AuthController extends BaseController
         return $this->redirect($this->url('auth.profile'));
     }
 
-    //helper metod
     private function refreshSessionIdentity(UserModel $user): void
     {
         try {

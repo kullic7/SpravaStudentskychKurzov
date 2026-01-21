@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Controllers;
-
 use App\Models\Enrollment;
 use Framework\Core\BaseController;
 use Framework\Http\Request;
@@ -10,7 +8,6 @@ use App\Models\Student;
 
 class StudentController extends BaseController
 {
-    // default index -> redirect to zapisy
     public function index(Request $request): Response
     {
         return $this->html();
@@ -38,7 +35,6 @@ class StudentController extends BaseController
             return $this->redirect($this->url('enrollment.zapisy'));
         }
 
-        // ownership check
         if ($enrollment->studentId !== $student->id) {
             return $this->redirect($this->url('enrollment.zapisy'));
         }
@@ -71,7 +67,6 @@ class StudentController extends BaseController
             ['status' => 'not_approved']
         );
 
-        // on error (duplicate, etc.) just redirect back for now
         return $this->redirect($this->url('course.kurzy'));
     }
 }

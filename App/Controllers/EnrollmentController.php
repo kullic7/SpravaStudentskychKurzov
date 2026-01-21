@@ -10,7 +10,6 @@ use App\Models\Student;
 
 class EnrollmentController extends BaseController
 {
-    // default index -> redirect to zapisy
     public function index(Request $request): Response
     {
         return $this->html();
@@ -25,16 +24,13 @@ class EnrollmentController extends BaseController
 
         $role = $user->getRole();
 
-        // 1️⃣ načítanie zápisov podľa roly
         switch ($role) {
             case 'admin':
                 $enrollments = Enrollment::getPendingEnrollments();
                 break;
-
             case 'student':
                 $enrollments = $this->getStudentPendingEnrollments($user);
                 break;
-
             default:
                 $enrollments = [];
         }
@@ -62,7 +58,6 @@ class EnrollmentController extends BaseController
         ], 'zapisy');
     }
 
-
     private function getStudentPendingEnrollments($user): array
     {
         $userId = $user->getId();
@@ -77,5 +72,4 @@ class EnrollmentController extends BaseController
 
         return Enrollment::getPendingByStudentId($student->id);
     }
-
 }

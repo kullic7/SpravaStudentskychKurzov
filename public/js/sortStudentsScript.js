@@ -6,7 +6,6 @@ function filterStudents() {
     const rows = table.tBodies[0].rows;
 
     for (let row of rows) {
-        // berieme iba základné stĺpce (bez kurzov)
         const searchableText = [
             row.cells[0].innerText, // meno
             row.cells[1].innerText, // priezvisko

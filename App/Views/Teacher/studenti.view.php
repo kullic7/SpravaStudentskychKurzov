@@ -37,6 +37,7 @@ $title = 'Študenti';
                             <th>Kurzy (známka)</th>
                         </tr>
                     </thead>
+                    <!-- chat gpt -->
                     <tbody>
                         <?php foreach ($students as $entry):
                             $student = $entry['student'] ?? null;
@@ -72,7 +73,7 @@ $title = 'Študenti';
                                                     <form action="<?= htmlspecialchars($link->url('teacher.updateGrade')) ?>" method="post" class="d-inline-flex align-items-center grade-ajax-form">
                                                         <input type="hidden" name="enrollmentId" value="<?= htmlspecialchars($enId) ?>">
                                                         <input type="text" name="grade" pattern="^(A|a|b|c|d|e|B|C|D|E|Fx)$"
-                                                               title="Povolené známky: A–E alebo Fx" value="<?= htmlspecialchars($gradeDisplay === '-' ? '' : $gradeDisplay) ?>" placeholder="-" class="form-control form-control-sm grade-input" style="width:100px;" />
+                                                               title="Povolené známky: A–E alebo Fx" value="<?= htmlspecialchars($gradeDisplay === '-' ? '' : $gradeDisplay) ?>" placeholder="-" class="form-control form-control-sm grade-input" style="width:50px;" />
                                                         <button type="submit" class="btn btn-sm btn-primary ms-2">Uložiť</button>
                                                         <span class="ms-2 text-success small save-status" style="display:none;">Uložené</span>
                                                         <span class="ms-2 text-danger small save-error" style="display:none;"></span>

@@ -63,7 +63,7 @@ $averageGrade = $averageGrade ?? null;
                         <?php foreach ($enrollments as $row):
                             $cname = $row['courseName'] ?? '-';
                             $cteacherName = $row['teacherName'] ?? '-';
-                            $cdesc = $row['description'] ?? null; // may be provided by controller
+                            $cdesc = $row['description'] ?? null;
                             $credits = $row['credits'] !== null ? (string)$row['credits'] : null;
                             $grade = $row['grade'] !== null ? (string)$row['grade'] : null;
                         ?>

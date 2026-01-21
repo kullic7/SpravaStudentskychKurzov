@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!form || !alertBox || !submitBtn) return;
 
+    //chat gpt
     const escapeHtml = str =>
         String(str)
             .replace(/&/g, '&amp;')

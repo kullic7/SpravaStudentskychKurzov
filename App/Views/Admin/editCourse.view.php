@@ -11,7 +11,7 @@ use App\Configuration;
 $view->setLayout(Configuration::HOME_LAYOUT);
 $title = 'Upraviť kurz';
 
-// helper to get posted value or course property
+//chat gpt
 function val($posted, $course, $key, $prop = null) {
     if (isset($posted[$key])) return $posted[$key];
     $prop = $prop ?? $key;

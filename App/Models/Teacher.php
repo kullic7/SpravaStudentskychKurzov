@@ -9,7 +9,6 @@ class Teacher extends Model
     protected static array $columnsMap = [
         'user_id' => 'userId',
     ];
-
     public ?int $id = null;
     public ?int $userId = null;
     public ?string $department = null;

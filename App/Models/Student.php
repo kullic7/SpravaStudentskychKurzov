@@ -5,15 +5,12 @@ namespace App\Models;
 use Framework\Core\Model;
 class Student extends Model
 {
-    // Optional explicit table name (conventions would resolve this automatically)
     protected static ?string $tableName = 'students';
-
     protected static array $columnsMap = [
         'id' => 'id',
         'user_id' => 'userId',
         'student_number'  => 'studentNumber',
     ];
-
     public ?int $id = null;
     public ?int $userId = null;
     public ?string $studentNumber = null;
@@ -42,7 +39,6 @@ class Student extends Model
         $items = static::getAll('user_id = ?', [$userId], null, 1);
         return $items[0] ?? null;
     }
-
 
     public function update(array $data): array
     {
@@ -109,14 +105,7 @@ class Student extends Model
 
         $this->year = $yearInt;
     }
-    /**
-     * Create a student associated with a user id.
-     * Returns ['student' => Student|null, 'errors' => array].
-     * Expected keys: studentNumber, year
-     * @param int $userId
-     * @param array $data
-     * @return array{student:?static, errors:array}
-     */
+
     public static function create(int $userId, array $data): array
     {
         $student = new static();

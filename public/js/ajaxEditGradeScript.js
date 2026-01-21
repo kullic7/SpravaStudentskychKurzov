@@ -1,3 +1,4 @@
+//chat gpt z casti
 document.addEventListener('DOMContentLoaded', () => {
     const VALID_GRADE = /^(A|B|C|D|E|FX)$/;
 

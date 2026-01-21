@@ -17,9 +17,6 @@ class TeacherController extends BaseController
         return $this->html();
     }
 
-    /**
-     * Show list of students that are enrolled in any course taught by the logged-in teacher.
-     */
     public function studenti(Request $request): Response
     {
         $user = $this->app->getAuthenticator()->getUser();
@@ -55,6 +52,7 @@ class TeacherController extends BaseController
     }
 
 
+    //chat gpt
     private function loadStudentsForTeacherCourses(array $courses): array
     {
         $coursesById = [];
@@ -99,10 +97,6 @@ class TeacherController extends BaseController
         return array_values($studentsMap);
     }
 
-
-    /**
-     * Update grade for an enrollment. Only allowed if logged-in teacher actually teaches the course.
-     */
     public function updateGrade(Request $request): Response
     {
         $user = $this->app->getAuthenticator()->getUser();
@@ -147,5 +141,4 @@ class TeacherController extends BaseController
 
         return $this->redirect($this->url('auth.index'));
     }
-
 }

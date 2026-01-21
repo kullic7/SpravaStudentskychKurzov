@@ -1,5 +1,5 @@
+//chat gpt
 let sortDirection = 1; // 1 = asc, -1 = desc
-
 function sortTableByColumn(columnIndex) {
     const table = document.getElementById("usersTable");
     const tbody = table.tBodies[0];

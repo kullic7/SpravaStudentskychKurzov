@@ -25,6 +25,4 @@ class LoggedUser implements IIdentity
     public function getRole(): string {
         return $this->role;
     }
-
-
 }

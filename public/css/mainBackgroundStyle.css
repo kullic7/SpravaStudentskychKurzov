@@ -1,9 +1,10 @@
-
+/* chatgpt */
 .main-bg {
     min-height: 100vh;
     background: linear-gradient(135deg, #8ec5fc, #e0c3fc);
     font-family: 'Poppins', sans-serif;
 }
+
 @media (max-width: 576px) {
 
     .login-logo {
@@ -20,7 +21,8 @@
         width: 90%;
         padding: 25px;
     }
+
+    .main-content {
+        padding-bottom: 110px;
+    }
 }
-
-
-

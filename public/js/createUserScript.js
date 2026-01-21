@@ -1,3 +1,4 @@
+//chat gpt z casti
 (function(){
     const roleSelect = document.getElementById('role');
     const studentFields = document.getElementById('studentFields');
@@ -39,8 +40,6 @@
             setRequired(teacherRequiredInputs, true);
         }
     }
-
     roleSelect.addEventListener('change', updateVisibility);
-    // initial
     updateVisibility();
 })();

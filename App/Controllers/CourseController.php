@@ -16,28 +16,24 @@ class CourseController extends BaseController
     {
         return $this->html();
     }
-    // Action that shows the shared courses view for admin and student
+    //chat gpt
     public function kurzy(Request $request): Response
     {
         $session = $this->app->getSession();
         $errors = $session->get('errors');
         $session->remove('errors');
 
-        // Load data
         $courses = Course::getAllCourses();
         $allTeachers = Teacher::getAllTeachers();
 
-        // Resolve current user and role
         $appUser = $this->app->getAuthenticator()->getUser();
         $role = $appUser ? $appUser->getRole() : null;
 
         $isAdmin = ($role === 'admin');
         $isStudent = ($role === 'student');
 
-        // Prepare teachers per course
         $courseTeachers = $this->prepareCourseTeachers($courses);
 
-        // Prepare enrollments map for student
         $studentEnrollmentsMap = $isStudent && $appUser
             ? $this->prepareStudentEnrollmentsMap((int)$appUser->getId())
             : [];

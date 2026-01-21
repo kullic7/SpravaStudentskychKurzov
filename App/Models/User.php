@@ -61,7 +61,7 @@ class User extends Model
         if (mb_strlen($val) > 20) {
             $errors[] = $fieldName . ' môže mať maximálne 20 znakov.';
         }
-        // allow Unicode letters only
+
         if (!preg_match('/^[\p{L}]+$/u', $val)) {
             $errors[] = $fieldName . ' môže obsahovať len písmená.';
         }
@@ -114,7 +114,6 @@ class User extends Model
 
     public function updateProfile(array $data, bool $isAdmin): array
     {
-        // pass current password hash so we can verify old password when changing
         $result = static::validateProfileData($data, $this->id, false, $this->passwordHash, false, $isAdmin);
 
         if (!empty($result['errors'])) {
@@ -129,7 +128,6 @@ class User extends Model
 
     public static function create(array $data): array
     {
-        // creation: no current password hash available
         $result = static::validateProfileData($data, null, true, null, true);
 
         if (!empty($result['errors'])) {
@@ -161,7 +159,7 @@ class User extends Model
             $this->passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
         }
     }
-
+    //chat gpt
     private static function validateProfileData(
         array $data,
         ?int $currentUserId,

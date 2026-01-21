@@ -33,9 +33,8 @@ class AdminController extends BaseController
         if ($role !== 'admin') {
             return $this->redirect($this->url('auth.index'));
         }
-        return null; // OK → povolené
+        return null;
     }
-    // Unified users listing (students + teachers + others)
     public function pouzivatelia(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) {
@@ -48,12 +47,10 @@ class AdminController extends BaseController
         $errors = $session->get('errors');
         $session->remove('errors');
 
-        // načítanie dát
         $users = User::getAllUsers();
         $students = Student::getAllStudents();
         $teachers = Teacher::getAllTeachers();
 
-        // mapovanie podľa userId (pripravené pre view)
         $studentsByUser = [];
         foreach ($students as $s) {
             if (isset($s->userId)) {
@@ -80,7 +77,6 @@ class AdminController extends BaseController
     public function approveEnrollment(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
-        // Accept id via POST
         $id = $request->post('id');
         if ($id === null) {
             return $this->redirect($this->url('enrollment.zapisy'));
@@ -106,7 +102,6 @@ class AdminController extends BaseController
             return $this->redirect($this->url('admin.pouzivatelia'));
         }
 
-        // načítanie súvisiacich entít
         $student = Student::findByUserId($user->id);
         $teacher = Teacher::findByUserId($user->id);
 
@@ -117,7 +112,7 @@ class AdminController extends BaseController
         ], 'editUser');
     }
 
-
+    //chat GPT doplnenie
     public function updateUser(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
@@ -195,7 +190,6 @@ class AdminController extends BaseController
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        // collect data
         $firstName = trim((string)$request->post('firstName'));
         $lastName = trim((string)$request->post('lastName'));
         $email = trim((string)$request->post('email'));
@@ -227,18 +221,15 @@ class AdminController extends BaseController
             return $this->html(['errors'=>['Neočakavaná chyba pri vytváraní používateľa.'],'posted'=>$posted], 'createUser');
         }
 
-        // create related records depending on role; if creation fails, delete the user and show errors
         if ($role === 'student') {
             $studentRes = Student::create($user->id, ['studentNumber'=>$studentNumber,'year'=>$year]);
             if (!empty($studentRes['errors'])) {
-                // rollback
                 try { $user->delete(); } catch (\Throwable $_) {}
                 return $this->html(['errors'=>$studentRes['errors'],'posted'=>$posted], 'createUser');
             }
         } elseif ($role === 'teacher') {
             $teacherRes = Teacher::create($user->id, ['department'=>$department]);
             if (!empty($teacherRes['errors'])) {
-                // rollback
                 try { $user->delete(); } catch (\Throwable $_) {}
                 return $this->html(['errors'=>$teacherRes['errors'],'posted'=>$posted], 'createUser');
             }
@@ -251,18 +242,15 @@ class AdminController extends BaseController
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        // Provide a list of teachers so the admin can assign one (optional)
         $teachers = Teacher::getAllTeachers();
 
         return $this->html(['teachers' => $teachers], 'createCourse');
     }
 
-    // Handle create course POST
     public function createCoursePost(Request $request): Response
     {
         if ($resp = $this->requireAdmin()) return $resp;
 
-        // collect posted data and delegate creation to the Course model
         $posted = [
             'name' => trim((string)$request->post('name')),
             'description' => trim((string)$request->post('description')),
@@ -287,7 +275,7 @@ class AdminController extends BaseController
         if (!$course) {
             return $this->redirect($this->url('course.kurzy'));
         }
-        // provide list of teachers for select
+
         $teachers = Teacher::getAllTeachers();
 
         return $this->html(['course' => $course, 'teachers' => $teachers], 'editCourse');
@@ -337,7 +325,6 @@ class AdminController extends BaseController
         try {
             $course->delete();
         } catch (\Throwable $e) {
-            // Store error message in session (flash-like) and redirect back to courses list
             try {
                 $this->app->getSession()->set('errors', ['Chyba pri mazaní kurzu: ' . $e->getMessage()]);
             } catch (\Throwable $_) {
@@ -348,7 +335,6 @@ class AdminController extends BaseController
         }
 
         return $this->redirect($this->url('course.kurzy'));
-
     }
 
     public function deleteUser(Request $request): Response
@@ -367,14 +353,11 @@ class AdminController extends BaseController
             try {
                 $this->app->getSession()->set(
                     'errors',
-                    ['Chyba pri mazaní používateľa. Používateľ má naviazané záznamy.']
+                    ['Chyba pri mazaní používateľa.']
                 );
             } catch (\Throwable $_) {}
         }
 
         return $this->redirect($this->url('admin.pouzivatelia'));
     }
-
-
-
 }

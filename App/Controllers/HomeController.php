@@ -11,10 +11,8 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\Teacher;
 
-
 class HomeController extends BaseController
 {
-    // Dashboard - shows different content depending on user's role
     public function index(Request $request): Response
     {
         $user = $this->app->getAuthenticator()->getUser();
@@ -86,9 +84,8 @@ class HomeController extends BaseController
 
             $studentsCount = count($uniqueStudentIds);
         } catch (\Throwable $_) {
-            // keep defaults
-        }
 
+        }
         return compact('totalCourses', 'studentsCount', 'teacherCourses');
     }
 
@@ -132,9 +129,8 @@ class HomeController extends BaseController
                 ];
             }
         } catch (\Throwable $_) {
-            // keep defaults
-        }
 
+        }
         return [
             'totalCourses' => $totalCourses,
             'pendingEnrollments' => $pendingEnrollments,
