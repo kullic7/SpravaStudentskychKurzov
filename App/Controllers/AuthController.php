@@ -108,7 +108,7 @@ class AuthController extends BaseController
         ];
 
         // Delegate validation and saving to the model helper
-        $errors = $user->updateProfile($data);
+        $errors = $user->updateProfile($data, false);
 
         if (!empty($errors)) {
             if ($request->isAjax()) {

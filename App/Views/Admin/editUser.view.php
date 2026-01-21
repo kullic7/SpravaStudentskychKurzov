@@ -10,6 +10,8 @@ use App\Configuration;
 
 $view->setLayout(Configuration::HOME_LAYOUT);
 
+$student = $student ?? null;
+$teacher = $teacher ?? null;
 $studentData = $studentData ?? [];
 $teacherData = $teacherData ?? [];
 

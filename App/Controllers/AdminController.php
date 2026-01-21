@@ -141,7 +141,7 @@ class AdminController extends BaseController
         $year = $request->post('year');
         $department = trim((string)$request->post('department'));
 
-        $errors = $user->updateProfile($data);
+        $errors = $user->updateProfile($data, true);
 
         // If there are errors, pass posted extra values back to the view so the form preserves them
         $studentData = ['studentNumber' => $studentNumber, 'year' => $year];

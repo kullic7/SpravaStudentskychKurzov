@@ -12,7 +12,7 @@ function sortTableByColumn(columnIndex) {
         return aText.localeCompare(bText) * sortDirection;
     });
 
-    sortDirection *= -1; // toggle direction
+    sortDirection *= -1;
 
     rows.forEach(row => tbody.appendChild(row));
 }
@@ -21,12 +21,11 @@ function filterUsers() {
     const filter = input.value.toLowerCase();
 
     const table = document.getElementById("usersTable");
+    //vsetky tr v tbodies
     const rows = table.tBodies[0].rows;
 
     for (let row of rows) {
         const text = row.innerText.toLowerCase();
-
-        // zobraz / skry riadok
         row.style.display = text.includes(filter) ? "" : "none";
     }
 }

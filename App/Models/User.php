@@ -112,10 +112,10 @@ class User extends Model
         return $errors;
     }
 
-    public function updateProfile(array $data): array
+    public function updateProfile(array $data, bool $isAdmin): array
     {
         // pass current password hash so we can verify old password when changing
-        $result = static::validateProfileData($data, $this->id, false, $this->passwordHash);
+        $result = static::validateProfileData($data, $this->id, false, $this->passwordHash, false, $isAdmin);
 
         if (!empty($result['errors'])) {
             return $result['errors'];
@@ -130,7 +130,7 @@ class User extends Model
     public static function create(array $data): array
     {
         // creation: no current password hash available
-        $result = static::validateProfileData($data, null, true, null);
+        $result = static::validateProfileData($data, null, true, null, true);
 
         if (!empty($result['errors'])) {
             return ['user' => null, 'errors' => $result['errors']];
@@ -166,7 +166,9 @@ class User extends Model
         array $data,
         ?int $currentUserId,
         bool $passwordRequired,
-        ?string $currentPasswordHash = null
+        ?string $currentPasswordHash = null,
+        bool $isCreation = false,
+        bool $isAdmin = false
     ): array {
         $errors = [];
 
@@ -184,15 +186,18 @@ class User extends Model
         $errors = array_merge($errors, static::validatePassword($oldPassword, $password, $confirm, $passwordRequired));
 
         $pw = $password === null ? '' : (string)$password;
-        if ($pw !== '') {
-            if ($currentPasswordHash === null) {
-                $errors[] = 'Nie je možné overiť staré heslo.';
-            } else {
-                if (empty($oldPassword) || !password_verify((string)$oldPassword, $currentPasswordHash)) {
-                    $errors[] = 'Staré heslo je nesprávne.';
+        if (!$isCreation && !$isAdmin) {
+            if ($pw !== '') {
+                if ($currentPasswordHash === null) {
+                    $errors[] = 'Nie je možné overiť staré heslo.';
+                } else {
+                    if (empty($oldPassword) || !password_verify((string)$oldPassword, $currentPasswordHash)) {
+                        $errors[] = 'Staré heslo je nesprávne.';
+                    }
                 }
             }
         }
+
 
         return [
             'errors'    => $errors,
