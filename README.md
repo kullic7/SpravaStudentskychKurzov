@@ -1,11 +1,75 @@
-Správa študentských kurzov
+# Správa študentských kurzov
 
-Modulárna webová aplikácia na evidenciu študentov, učiteľov, kurzov a zápisov
+Webová aplikácia vytvorená v PHP v architektúre MVC.
+Aplikácia slúži na správu používateľov, kurzov a zápisov študentov.
 
-🧾 O projekte
+---
 
-Aplikácia Správa študentských kurzov je webový informačný systém určený na evidenciu študentov, učiteľov, kurzov a ich zápisov.
-Cieľom projektu je vytvoriť jednoduchý, prehľadný a bezpečný systém, ktorý umožní študentom a učiteľom efektívne spravovať informácie o prebiehajúcich kurzoch a ich účastníkoch.
+## Požiadavky
 
-Projekt bol vytvorený ako semestrálna práca so snahou lepšie pochopiť princípy vývoja webových aplikácií v PHP a architektúru MVC (Model–View–Controller). Ide o tému, ktorá má reálne využitie na školách a univerzitách – správa kurzov, priraďovanie študentov, hodnotenie či evidencia pedagogických aktivít patrí medzi časté potreby informačných systémov.
+Pre spustenie aplikácie je potrebné mať nainštalované:
 
+- Docker
+- Docker Compose
+
+---
+
+## Inštalácia a spustenie
+
+1. Naklonovanie repozitára:
+```bash
+git clone <URL_REPOZITARA>
+cd <NAZOV_PROJEKTU>
+```
+2. Vytvorenie súboru .env v koreňovom adresári projektu:
+```bash
+POSTGRES_USER=app
+POSTGRES_PASSWORD=secret
+POSTGRES_DB=kurzy
+```
+
+3. Spustenie aplikácie pomocou Docker Compose:
+```bash
+docker compose up --build
+```
+4. Prístup k aplikácii
+```
+Webová aplikácia:
+http://localhost
+
+Adminer (správa databázy):
+http://localhost:8080
+```
+
+## Databáza: PostgreSQL
+
+Server: postgres
+
+Port: 5432
+
+Používateľské údaje sú definované v súbore .env
+
+Databázové tabuľky sa vytvárajú automaticky pri prvom spustení
+pomocou SQL skriptov v priečinku sql/.
+
+## Testovacie prihlasovacie údaje
+
+Pre jednoduché vyskúšanie aplikácie sú k dispozícii nasledujúce účty:
+
+### Admin
+
+Email: admin@example.com
+
+Heslo: admin123
+
+### Študent
+
+Email: john.doe@example.com
+
+Heslo: password123
+
+### Učiteľ
+
+Email: peter.novak@example.com
+
+Heslo: password123
